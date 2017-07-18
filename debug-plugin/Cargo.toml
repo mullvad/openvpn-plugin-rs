@@ -8,4 +8,4 @@ description = "An example/debug OpenVPN plugin. Showing the features of openvpn-
 crate-type = ["cdylib"]
 
 [dependencies]
-openvpn-plugin = { path = "../" }
+openvpn-plugin = { path = "../", features = ["log"] }
