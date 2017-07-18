@@ -1,0 +1,10 @@
+[package]
+name = "debug-plugin"
+version = "0.1.0"
+authors = ["Linus Färnstrand <linus@mullvad.net>"]
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+openvpn-plugin = { path = "../" }
