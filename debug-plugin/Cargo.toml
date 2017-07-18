@@ -1,0 +1,11 @@
+[package]
+name = "debug-plugin"
+version = "0.1.0"
+authors = ["Mullvad VPN <admin@mullvad.net>", "Linus Färnstrand <linus@mullvad.net>"]
+description = "An example/debug OpenVPN plugin. Showing the features of openvpn-plugin"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+openvpn-plugin = { path = "../" }
