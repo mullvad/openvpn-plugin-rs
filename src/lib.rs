@@ -110,6 +110,7 @@ pub mod types;
 /// See the top level library documentation and the included `debug-plugin` crate for examples on
 /// how to use this macro.
 ///
+///
 /// ## `$open_fn` - The plugin load callback
 ///
 /// Should be a function with the following signature:
@@ -131,12 +132,14 @@ pub mod types;
 /// with the events it wants to register for and the handle instance that the plugin can use to
 /// keep state (See further down for more on the handle).
 ///
-/// The type of the error returned from this function does not matter. Any error makes
-/// `openvpn_plugin` return `OPENVPN_PLUGIN_FUNC_ERROR` to OpenVPN, which indicates that the plugin
+/// The type of the error returned from this function does not matter, as long as it implements
+/// `std::error::Error`. Any error returned is being logged with `log_error()`, and then
+/// `openvpn_plugin` returns `OPENVPN_PLUGIN_FUNC_ERROR` to OpenVPN, which indicates that the plugin
 /// failed to load and OpenVPN will abort and exit.
 ///
 /// The `openvpn_plugin::ffi::parse::{string_array_utf8, env_utf8}` functions can be used to try
 /// to convert the arguments and environment into Rust `String`s.
+///
 ///
 /// ## `$close_fn` - The plugin unload callback
 ///
@@ -149,6 +152,7 @@ pub mod types;
 /// This function is called just before the plugin is unloaded, just before OpenVPN shuts down.
 /// Here the plugin can do any cleaning up that is necessary. Since the handle is passed by value it
 /// will be dropped when this function returns.
+///
 ///
 /// ## `$event_fn` - The event callback function
 ///
@@ -169,10 +173,11 @@ pub mod types;
 ///
 /// The first argument, `OpenVpnPluginEvent`, will tell which event that is happening.
 ///
-/// The type of the error returned from this function does not matter. Any error makes
-/// `openvpn_plugin` return `OPENVPN_PLUGIN_FUNC_ERROR` to OpenVPN, which indicates different things
-/// on different events. In the case of an authentication request or TLS key verification it means
-/// that the request is denied and the connection is aborted.
+/// The type of the error returned from this function does not matter, as long as it implements
+/// `std::error::Error`. Any error returned is being logged with `log_error()`, and then
+/// `openvpn_plugin` returns `OPENVPN_PLUGIN_FUNC_ERROR` to OpenVPN, which indicates different
+/// things on different events. In the case of an authentication request or TLS key verification it
+/// means that the request is denied and the connection is aborted.
 ///
 /// ## `$handle_ty` - The handle type
 ///
