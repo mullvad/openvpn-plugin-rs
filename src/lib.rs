@@ -139,7 +139,7 @@ pub mod types;
 /// Should be a function with the following signature:
 ///
 /// ```rust,ignore
-/// fn $close_fn(handle: $handle_ty)
+/// fn foo_close(handle: $handle_ty)
 /// ```
 ///
 /// This function is called just before the plugin is unloaded, just before OpenVPN shuts down.
@@ -151,7 +151,7 @@ pub mod types;
 /// Should be a function with the following signature:
 ///
 /// ```rust,ignore
-/// fn $event_fn(
+/// fn foo_event(
 ///     event: types::OpenVpnPluginEvent,
 ///     args: &[CString],
 ///     env: &HashMap<CString, CString>,
