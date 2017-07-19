@@ -62,12 +62,12 @@
 //!     args: &[CString],
 //!     env: &HashMap<CString, CString>,
 //!     handle: &mut Handle,
-//! ) -> Result<SuccessType, ::std::io::Error> {
+//! ) -> Result<EventResult, ::std::io::Error> {
 //!     /* Process the event */
 //!
 //!     // If the processing worked fine and/or the request the callback represents should be
-//!     // accepted, return `SuccessType::Success`. See docs on this enum for more info.
-//!     Ok(SuccessType::Success)
+//!     // accepted, return `EventResult::Success`. See docs on this enum for more info.
+//!     Ok(EventResult::Success)
 //! }
 //!
 //! openvpn_plugin!(::openvpn_open, ::openvpn_close, ::openvpn_event, Handle);
@@ -167,7 +167,7 @@ pub mod logging;
 ///     args: &[CString],
 ///     env: &HashMap<CString, CString>,
 ///     handle: &mut $handle_ty,
-/// ) -> Result<types::SuccessType, Error>
+/// ) -> Result<types::EventResult, Error>
 /// ```
 ///
 /// This function is being called by OpenVPN each time one of the events that `$open_fn` registered
@@ -193,7 +193,7 @@ macro_rules! openvpn_plugin {
     ($open_fn:path, $close_fn:path, $event_fn:path, $handle_ty:ty) => {
         mod openvpn_plugin_ffi {
             use std::os::raw::{c_int, c_void};
-            use $crate::types::{OpenVpnPluginEvent, SuccessType};
+            use $crate::types::{OpenVpnPluginEvent, EventResult};
             use $crate::ffi::*;
             use $crate::ffi::structs::*;
 
@@ -261,15 +261,16 @@ macro_rules! openvpn_plugin {
 
                 let mut handle = unsafe { Box::from_raw((*args).handle as *mut $handle_ty) };
 
-                let result: Result<SuccessType, _> =
+                let result: Result<EventResult, _> =
                     $event_fn(event, &parsed_args, &parsed_env, &mut handle);
 
                 // Forget the handle again so it is not deallocated when we return here.
                 Box::into_raw(handle);
 
                 match result {
-                    Ok(SuccessType::Success) => OPENVPN_PLUGIN_FUNC_SUCCESS,
-                    Ok(SuccessType::Deferred) => OPENVPN_PLUGIN_FUNC_DEFERRED,
+                    Ok(EventResult::Success) => OPENVPN_PLUGIN_FUNC_SUCCESS,
+                    Ok(EventResult::Deferred) => OPENVPN_PLUGIN_FUNC_DEFERRED,
+                    Ok(EventResult::Failure) => OPENVPN_PLUGIN_FUNC_ERROR,
                     Err(e) => {
                         $crate::logging::log_error(e);
                         OPENVPN_PLUGIN_FUNC_ERROR
