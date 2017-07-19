@@ -95,6 +95,9 @@ pub mod ffi;
 /// abstraction exposed to the plugins.
 pub mod types;
 
+/// Functions for logging errors that occur in plugins.
+pub mod logging;
+
 
 /// The main part of this crate. The macro generates the public FFI functions that OpenVPN looks
 /// for in a shared library:
@@ -222,7 +225,7 @@ macro_rules! openvpn_plugin {
                         OPENVPN_PLUGIN_FUNC_SUCCESS
                     },
                     Err(e) => {
-                        $crate::log_error(e);
+                        $crate::logging::log_error(e);
                         OPENVPN_PLUGIN_FUNC_ERROR
                     },
                 }
@@ -268,7 +271,7 @@ macro_rules! openvpn_plugin {
                     Ok(SuccessType::Success) => OPENVPN_PLUGIN_FUNC_SUCCESS,
                     Ok(SuccessType::Deferred) => OPENVPN_PLUGIN_FUNC_DEFERRED,
                     Err(e) => {
-                        $crate::log_error(e);
+                        $crate::logging::log_error(e);
                         OPENVPN_PLUGIN_FUNC_ERROR
                     },
                 }
@@ -277,37 +280,4 @@ macro_rules! openvpn_plugin {
         // Export the openvpn_plugin_* FFI functions in the top level scope
         pub use openvpn_plugin_ffi::*;
     }
-}
-
-
-
-/// Error logging method used by the FFI functions to log if `$open_fn` or `$event_fn` returns an
-/// error. This version logs using the `error!` macro of the log crate. Compile without the `log`
-/// feature to make it print to stderr.
-#[cfg(feature = "log")]
-pub fn log_error<E: ::std::error::Error>(error: E) {
-    error!("{}", format_error(error));
-}
-
-/// Error logging method used by the FFI functions to log if `$open_fn` or `$event_fn` returns an
-/// error. This version only prints to stdout. Build the crate with the `log` feature to log using
-/// the `error!` macro.
-#[cfg(not(feature = "log"))]
-pub fn log_error<E: ::std::error::Error>(error: E) {
-    use std::io::{self, Write};
-    let error_msg = format!("{}\n", format_error(error));
-
-    let mut stderr = io::stderr();
-    let _ = stderr.write_all(error_msg.as_bytes());
-    let _ = stderr.flush();
-}
-
-fn format_error<E: ::std::error::Error>(error: E) -> String {
-    let mut error_string = format!("Error: {}", error);
-    let mut error_iter = error.cause();
-    while let Some(e) = error_iter {
-        error_string.push_str(&format!("\nCaused by: {}", e));
-        error_iter = e.cause();
-    }
-    error_string
 }
