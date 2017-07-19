@@ -144,7 +144,7 @@ pub mod types;
 ///
 /// This function is called just before the plugin is unloaded, just before OpenVPN shuts down.
 /// Here the plugin can do any cleaning up that is necessary. Since the handle is passed by value it
-/// will be droppde when this function returns.
+/// will be dropped when this function returns.
 ///
 /// ## `$event_fn` - The event callback function
 ///
