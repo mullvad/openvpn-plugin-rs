@@ -16,6 +16,9 @@ use openvpn_plugin::types::{OpenVpnPluginEvent, SuccessType};
 use std::collections::HashMap;
 use std::ffi::CString;
 
+/// The list of OpenVPN events we register for. The list contains all possible events, but some of
+/// them are commented out since they work slightly different, and will not work with the simple
+/// log-and-return-success implementation we have here.
 pub static INTERESTING_EVENTS: &[OpenVpnPluginEvent] = &[
     OpenVpnPluginEvent::Up,
     OpenVpnPluginEvent::Down,
