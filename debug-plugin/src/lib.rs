@@ -41,7 +41,7 @@ openvpn_plugin!(::openvpn_open, ::lol::openvpn_close, ::openvpn_event, ());
 fn openvpn_open(
     args: &[CString],
     env: &HashMap<CString, CString>,
-) -> Result<(Vec<OpenVpnPluginEvent>, ()), ()> {
+) -> Result<(Vec<OpenVpnPluginEvent>, ()), ::std::io::Error> {
     println!(
         "DEBUG-PLUGIN: open called:\n\targs: {:?}\n\tenv: {:?}",
         args,
@@ -61,7 +61,7 @@ fn openvpn_event(
     args: &[CString],
     env: &HashMap<CString, CString>,
     _handle: &mut (),
-) -> Result<SuccessType, ()> {
+) -> Result<SuccessType, ::std::io::Error> {
     println!(
         "DEBUG-PLUGIN: event called:\n\tevent: {:?}\n\targs: {:?}\n\tenv: {:?}",
         event,
