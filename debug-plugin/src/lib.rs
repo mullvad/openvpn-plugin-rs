@@ -12,7 +12,7 @@
 #[macro_use]
 extern crate openvpn_plugin;
 
-use openvpn_plugin::types::{OpenVpnPluginEvent, SuccessType};
+use openvpn_plugin::types::{OpenVpnPluginEvent, EventResult};
 use std::collections::HashMap;
 use std::ffi::CString;
 
@@ -61,12 +61,12 @@ fn openvpn_event(
     args: &[CString],
     env: &HashMap<CString, CString>,
     _handle: &mut (),
-) -> Result<SuccessType, ::std::io::Error> {
+) -> Result<EventResult, ::std::io::Error> {
     println!(
         "DEBUG-PLUGIN: event called:\n\tevent: {:?}\n\targs: {:?}\n\tenv: {:?}",
         event,
         args,
         env
     );
-    Ok(SuccessType::Success)
+    Ok(EventResult::Success)
 }
