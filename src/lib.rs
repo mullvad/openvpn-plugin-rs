@@ -122,9 +122,9 @@ pub mod types;
 ///
 /// This function will be called by OpenVPN when the plugin is loaded, just as OpenVPN starts.
 ///
-/// This function have access access to the arguments passed to the plugin and the initial
-/// OpenVPN environment. If the plugin deem the open operation successful it should return a vector
-/// with the events it want to register for and the handle instance that the plugin can use to
+/// This function have access to the arguments passed to the plugin and the initial
+/// OpenVPN environment. If the plugin deems the open operation successful it should return a vector
+/// with the events it wants to register for and the handle instance that the plugin can use to
 /// keep state (See further down for more on the handle).
 ///
 /// The type of the error returned from this function does not matter. Any error makes
@@ -168,7 +168,7 @@ pub mod types;
 /// The type of the error returned from this function does not matter. Any error makes
 /// `openvpn_plugin` return `OPENVPN_PLUGIN_FUNC_ERROR` to OpenVPN, which indicates different things
 /// on different events. In the case of an authentication request or TLS key verification it means
-/// that the request is denied and connection aborted.
+/// that the request is denied and the connection is aborted.
 ///
 /// ## `$handle_ty` - The handle type
 ///
