@@ -35,7 +35,7 @@
 //! Also in your crate root (`lib.rs`) define your handle type, the three callback functions and
 //! call the `openvpn_plugin!` macro to generate the corresponding FFI bindings.
 //! More details on the handle and the callback functions can be found in the documentation for the
-//! `openvpn_plugin!` macro.
+//! [`openvpn_plugin!`](macro.openvpn_plugin.html) macro.
 //!
 //! ```rust,ignore
 //! pub struct Handle {
@@ -43,9 +43,9 @@
 //! }
 //!
 //! fn openvpn_open(
-//!     _args: &[CString],
-//!     _env: &HashMap<CString, CString>,
-//! ) -> Result<(Vec<openvpn_plugin::types::OpenVpnPluginEvent>, Handle, ()> {
+//!     args: &[CString],
+//!     env: &HashMap<CString, CString>,
+//! ) -> Result<(Vec<openvpn_plugin::types::OpenVpnPluginEvent>, Handle), ::std::io::Error> {
 //!     // Listen to only the `Up` event, which will be fired when a tunnel has been established.
 //!     let events = vec![OpenVpnPluginEvent::Up];
 //!     // Create the handle instance.
@@ -53,16 +53,16 @@
 //!     Ok((events, handle))
 //! }
 //!
-//! pub fn openvpn_close(_handle: Handle) {
+//! pub fn openvpn_close(handle: Handle) {
 //!     println!("Plugin is closing down");
 //! }
 //!
 //! fn openvpn_event(
-//!     _event: openvpn_plugin::types::OpenVpnPluginEvent,
-//!     _args: &[CString],
-//!     _env: &HashMap<CString, CString>,
-//!     _handle: &mut Handle,
-//! ) -> Result<SuccessType, ()> {
+//!     event: openvpn_plugin::types::OpenVpnPluginEvent,
+//!     args: &[CString],
+//!     env: &HashMap<CString, CString>,
+//!     handle: &mut Handle,
+//! ) -> Result<SuccessType, ::std::io::Error> {
 //!     /* Process the event */
 //!
 //!     // If the processing worked fine and/or the request the callback represents should be
@@ -119,7 +119,7 @@ pub mod types;
 /// fn foo_open(
 ///     args: &[CString],
 ///     env: &HashMap<CString, CString>
-/// ) -> Result<(Vec<types::OpenVpnPluginEvent>, $handle_ty), _>
+/// ) -> Result<(Vec<types::OpenVpnPluginEvent>, $handle_ty), Error>
 /// ```
 ///
 /// With `foo_open` substituted for the function name of your liking and `$handle_ty` substituted
@@ -132,9 +132,9 @@ pub mod types;
 /// with the events it wants to register for and the handle instance that the plugin can use to
 /// keep state (See further down for more on the handle).
 ///
-/// The type of the error returned from this function does not matter, as long as it implements
+/// The type of the error in the result from this function does not matter, as long as it implements
 /// `std::error::Error`. Any error returned is being logged with `log_error()`, and then
-/// `openvpn_plugin` returns `OPENVPN_PLUGIN_FUNC_ERROR` to OpenVPN, which indicates that the plugin
+/// `OPENVPN_PLUGIN_FUNC_ERROR` is returned to OpenVPN, which indicates that the plugin
 /// failed to load and OpenVPN will abort and exit.
 ///
 /// The `openvpn_plugin::ffi::parse::{string_array_utf8, env_utf8}` functions can be used to try
@@ -164,7 +164,7 @@ pub mod types;
 ///     args: &[CString],
 ///     env: &HashMap<CString, CString>,
 ///     handle: &mut $handle_ty,
-/// ) -> Result<types::SuccessType, _>
+/// ) -> Result<types::SuccessType, Error>
 /// ```
 ///
 /// This function is being called by OpenVPN each time one of the events that `$open_fn` registered
@@ -173,9 +173,9 @@ pub mod types;
 ///
 /// The first argument, `OpenVpnPluginEvent`, will tell which event that is happening.
 ///
-/// The type of the error returned from this function does not matter, as long as it implements
+/// The type of the error in the result from this function does not matter, as long as it implements
 /// `std::error::Error`. Any error returned is being logged with `log_error()`, and then
-/// `openvpn_plugin` returns `OPENVPN_PLUGIN_FUNC_ERROR` to OpenVPN, which indicates different
+/// `OPENVPN_PLUGIN_FUNC_ERROR` is returned to OpenVPN, which indicates different
 /// things on different events. In the case of an authentication request or TLS key verification it
 /// means that the request is denied and the connection is aborted.
 ///
