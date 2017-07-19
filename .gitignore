@@ -1,0 +1,4 @@
+/target/
+/debug-plugin/target/
+**/*.rs.bk
+Cargo.lock

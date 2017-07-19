@@ -1,0 +1,17 @@
+[package]
+name = "openvpn-plugin"
+version = "0.1.0"
+authors = ["Mullvad VPN <admin@mullvad.net>", "Linus Färnstrand <linus@mullvad.net>"]
+description = "A crate allowing easy creation of OpenVPN plugins in Rust"
+keywords = ["openvpn", "vpn", "plugin", "ffi", "cdylib"]
+categories = ["api-bindings", "external-ffi-bindings", "network-programming"]
+repository = "https://github.com/mullvad/openvpn-plugin-rs"
+license = "MIT/Apache-2.0"
+
+[features]
+default = []
+serialize = ["serde", "serde_derive"]
+
+[dependencies]
+serde = { version = "1.0", optional = true }
+serde_derive = { version = "1.0", optional = true }
