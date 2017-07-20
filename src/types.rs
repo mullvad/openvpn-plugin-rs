@@ -74,20 +74,30 @@ pub fn events_to_bitmask(events: &[OpenVpnPluginEvent]) -> c_int {
 }
 
 
-/// Enum representing the two ways an OpenVPN plugin can return successfully from an event callback.
+/// Enum representing the results an OpenVPN plugin can return from an event callback.
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-pub enum SuccessType {
-    /// Indicates the plugin marks the event as a success. This means an auth is approved or
+pub enum EventResult {
+    /// Will return `OPENVPN_PLUGIN_FUNC_SUCCESS` to OpenVPN.
+    /// Indicates that the plugin marks the event as a success. This means an auth is approved or
     /// similar, depending on which type of event.
     Success,
 
+    /// Will return `OPENVPN_PLUGIN_FUNC_DEFERRED` to OpenVPN.
     /// WARNING: Can only be returned from the `OpenVpnPluginEvent::AuthUserPassVerify`
     /// (`OPENVPN_PLUGIN_AUTH_USER_PASS_VERIFY`) event. No other events may return this variant.
     /// Returning this tells OpenVPN to continue its normal work and that the decision on if the
     /// authentication is accepted or not will be delivered later, via writing to the path under
     /// the `auth_control_file` environment variable.
     Deferred,
+
+    /// Will return `OPENVPN_PLUGIN_FUNC_ERROR` to OpenVPN.
+    /// Both returning `Ok(EventResult::Failure)` and `Err(e)` from a callback will result in
+    /// `OPENVPN_PLUGIN_FUNC_ERROR` being returned to OpenVPN. The difference being that an `Err(e)`
+    /// will also log the error `e`. This variant is intended for when the plugin did not encounter
+    /// an error, but the event is a failure or is to be declined. Intended to be used to decline an
+    /// authentication request and similar.
+    Failure,
 }
 
 
