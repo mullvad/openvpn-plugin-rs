@@ -84,6 +84,14 @@ extern crate serde_derive;
 #[cfg(feature = "log")]
 extern crate log;
 
+use types::{EventResult, OpenVpnPluginEvent};
+
+use std::collections::HashMap;
+use std::ffi::CString;
+use std::fmt;
+use std::os::raw::{c_int, c_void};
+use std::panic;
+
 /// FFI types and functions used by the plugin to convert between the types OpenVPN pass and expect
 /// back and the Rust types the plugin will be exposed to.
 ///
@@ -191,94 +199,210 @@ pub mod logging;
 #[macro_export]
 macro_rules! openvpn_plugin {
     ($open_fn:path, $close_fn:path, $event_fn:path, $handle_ty:ty) => {
-        mod openvpn_plugin_ffi {
-            use std::os::raw::{c_int, c_void};
-            use $crate::types::{OpenVpnPluginEvent, EventResult};
-            use $crate::ffi::*;
-            use $crate::ffi::structs::*;
-
-            /// Called by OpenVPN when the plugin is first loaded on OpenVPN start.
-            /// Used to register which events the plugin wants to listen to (`args.type_mask`). Can
-            /// also set an arbitrary pointer inside `args.handle` that will then be passed to all
-            /// subsequent calls to the plugin.
-            ///
-            /// Will parse the data from OpenVPN and call the function given as `$open_fn` to the
-            /// `openvpn_plugin` macro.
-            #[no_mangle]
-            pub extern "C" fn openvpn_plugin_open_v3(_version: c_int,
-                                                    args: *const openvpn_plugin_args_open_in,
-                                                    retptr: *mut openvpn_plugin_args_open_return)
-                                                    -> c_int {
-                let parsed_args = unsafe { $crate::ffi::parse::string_array((*args).argv) }
-                    .expect("Malformed args from OpenVPN");
-                let parsed_env = unsafe { $crate::ffi::parse::env((*args).envp) }
-                    .expect("Malformed env from OpenVPN");
-
-                match $open_fn(&parsed_args, &parsed_env) {
-                    Ok((events, handle)) => {
-                        let type_mask = $crate::types::events_to_bitmask(&events);
-                        let handle_ptr = Box::into_raw(Box::new(handle)) as *const c_void;
-                        unsafe {
-                            (*retptr).type_mask = type_mask;
-                            (*retptr).handle = handle_ptr;
-                        }
-                        OPENVPN_PLUGIN_FUNC_SUCCESS
-                    },
-                    Err(e) => {
-                        $crate::logging::log_error(e);
-                        OPENVPN_PLUGIN_FUNC_ERROR
-                    },
-                }
-            }
-
-            /// Called by OpenVPN when the plugin is unloaded, just before OpenVPN shuts down.
-            /// Will call the function given as `$event_fn` to the `openvpn_plugin` macro.
-            #[no_mangle]
-            pub extern "C" fn openvpn_plugin_close_v1(handle: *const c_void) {
-                // IMPORTANT: Bring the handle object back from a raw pointer. This will cause the
-                // handle object to be properly deallocated when `$close_fn` returns.
-                let handle = *unsafe { Box::from_raw(handle as *mut $handle_ty) };
-                $close_fn(handle);
-            }
-
-            /// Called by OpenVPN for each `OPENVPN_PLUGIN_*` event that it registered for in
-            /// the open function.
-            ///
-            /// Will parse the data from OpenVPN and call the function given as `$event_fn` to the
-            /// `openvpn_plugin` macro.
-            #[no_mangle]
-            pub extern "C" fn openvpn_plugin_func_v3(_version: c_int,
-                                                    args: *const openvpn_plugin_args_func_in,
-                                                    _retptr: *const openvpn_plugin_args_func_return)
-                                                    -> c_int {
-                let event_type = unsafe { (*args).event_type };
-                let event = OpenVpnPluginEvent::from_int(event_type)
-                    .expect("Invalid event integer");
-                let parsed_args = unsafe { $crate::ffi::parse::string_array((*args).argv) }
-                    .expect("Malformed args from OpenVPN");
-                let parsed_env = unsafe { $crate::ffi::parse::env((*args).envp) }
-                    .expect("Malformed env from OpenVPN");
-
-                let mut handle = unsafe { Box::from_raw((*args).handle as *mut $handle_ty) };
-
-                let result: Result<EventResult, _> =
-                    $event_fn(event, &parsed_args, &parsed_env, &mut handle);
-
-                // Forget the handle again so it is not deallocated when we return here.
-                Box::into_raw(handle);
-
-                match result {
-                    Ok(EventResult::Success) => OPENVPN_PLUGIN_FUNC_SUCCESS,
-                    Ok(EventResult::Deferred) => OPENVPN_PLUGIN_FUNC_DEFERRED,
-                    Ok(EventResult::Failure) => OPENVPN_PLUGIN_FUNC_ERROR,
-                    Err(e) => {
-                        $crate::logging::log_error(e);
-                        OPENVPN_PLUGIN_FUNC_ERROR
-                    },
-                }
-            }
+        /// Called by OpenVPN when the plugin is first loaded on OpenVPN start.
+        /// Used to register which events the plugin wants to listen to (`args.type_mask`). Can
+        /// also set an arbitrary pointer inside `args.handle` that will then be passed to all
+        /// subsequent calls to the plugin.
+        ///
+        /// Will parse the data from OpenVPN and call the function given as `$open_fn` to the
+        /// `openvpn_plugin` macro.
+        #[no_mangle]
+        pub extern "C" fn openvpn_plugin_open_v3(
+            _version: ::std::os::raw::c_int,
+            args: *const $crate::ffi::openvpn_plugin_args_open_in,
+            retptr: *mut $crate::ffi::openvpn_plugin_args_open_return,
+        ) -> ::std::os::raw::c_int {
+            $crate::openvpn_plugin_open(args, retptr, $open_fn)
         }
-        // Export the openvpn_plugin_* FFI functions in the top level scope
-        pub use openvpn_plugin_ffi::*;
+
+        /// Called by OpenVPN when the plugin is unloaded, just before OpenVPN shuts down.
+        /// Will call the function given as `$event_fn` to the `openvpn_plugin` macro.
+        #[no_mangle]
+        pub extern "C" fn openvpn_plugin_close_v1(handle: *const ::std::os::raw::c_void) {
+            $crate::openvpn_plugin_close(handle, $close_fn)
+        }
+
+        /// Called by OpenVPN for each `OPENVPN_PLUGIN_*` event that it registered for in
+        /// the open function.
+        ///
+        /// Will parse the data from OpenVPN and call the function given as `$event_fn` to the
+        /// `openvpn_plugin` macro.
+        #[no_mangle]
+        pub extern "C" fn openvpn_plugin_func_v3(
+            _version: ::std::os::raw::c_int,
+            args: *const $crate::ffi::openvpn_plugin_args_func_in,
+            _retptr: *const $crate::ffi::openvpn_plugin_args_func_return,
+        ) -> ::std::os::raw::c_int {
+            $crate::openvpn_plugin_func(args, $event_fn)
+        }
+    }
+}
+
+
+/// Internal macro for matching on a result and either return the value inside the `Ok`, or in the
+/// case of an `Err`, log it and early return [`OPENVPN_PLUGIN_FUNC_ERROR`].
+///
+/// [`OPENVPN_PLUGIN_FUNC_ERROR`]: ffi/constant.OPENVPN_PLUGIN_FUNC_ERROR.html
+macro_rules! try_or_return_error {
+    ($result:expr, $error_msg:expr) => {
+        match $result {
+            Ok(result) => result,
+            Err(e) => {
+                logging::log_error(Error::new($error_msg, e));
+                return ffi::OPENVPN_PLUGIN_FUNC_ERROR;
+            }
+        };
+    }
+}
+
+
+/// Internal helper function. This function should never be called manually, only by code generated
+/// by the [`openvpn_plugin!`] macro.
+///
+/// [`openvpn_plugin!`]: macro.openvpn_plugin.html
+#[doc(hidden)]
+pub fn openvpn_plugin_open<H, E, F>(
+    args: *const ffi::openvpn_plugin_args_open_in,
+    retptr: *mut ffi::openvpn_plugin_args_open_return,
+    open_fn: F,
+) -> c_int
+where
+    E: ::std::error::Error,
+    F: panic::RefUnwindSafe,
+    F: Fn(&[CString], &HashMap<CString, CString>)
+        -> Result<(Vec<OpenVpnPluginEvent>, H), E>,
+{
+    let parsed_args = try_or_return_error!(
+        unsafe { ffi::parse::string_array((*args).argv) },
+        "Malformed args from OpenVPN"
+    );
+    let parsed_env = try_or_return_error!(
+        unsafe { ffi::parse::env((*args).envp) },
+        "Malformed env from OpenVPN"
+    );
+
+    match panic::catch_unwind(|| open_fn(&parsed_args, &parsed_env)) {
+        Ok(Ok((events, handle))) => {
+            let type_mask = types::events_to_bitmask(&events);
+            let handle_ptr = Box::into_raw(Box::new(handle)) as *const c_void;
+            unsafe {
+                (*retptr).type_mask = type_mask;
+                (*retptr).handle = handle_ptr;
+            }
+            ffi::OPENVPN_PLUGIN_FUNC_SUCCESS
+        }
+        Ok(Err(e)) => {
+            logging::log_error(e);
+            ffi::OPENVPN_PLUGIN_FUNC_ERROR
+        }
+        Err(e) => {
+            logging::log_panic("plugin open", e);
+            ffi::OPENVPN_PLUGIN_FUNC_ERROR
+        }
+    }
+}
+
+
+/// Internal helper function. This function should never be called manually, only by code generated
+/// by the [`openvpn_plugin!`] macro.
+///
+/// [`openvpn_plugin!`]: macro.openvpn_plugin.html
+#[doc(hidden)]
+pub fn openvpn_plugin_close<H, F>(handle: *const c_void, close_fn: F)
+where
+    H: panic::UnwindSafe,
+    F: Fn(H) + panic::RefUnwindSafe,
+{
+    // IMPORTANT: Bring the handle object back from a raw pointer. This will cause the
+    // handle object to be properly deallocated when `$close_fn` returns.
+    let handle = *unsafe { Box::from_raw(handle as *mut H) };
+    if let Err(e) = panic::catch_unwind(|| close_fn(handle)) {
+        logging::log_panic("plugin close", e);
+    }
+}
+
+
+/// Internal helper function. This function should never be called manually, only by code generated
+/// by the [`openvpn_plugin!`] macro.
+///
+/// [`openvpn_plugin!`]: macro.openvpn_plugin.html
+#[doc(hidden)]
+pub fn openvpn_plugin_func<H, E, F>(
+    args: *const ffi::openvpn_plugin_args_func_in,
+    event_fn: F,
+) -> c_int
+where
+    E: ::std::error::Error,
+    F: panic::RefUnwindSafe,
+    F: Fn(OpenVpnPluginEvent, &[CString], &HashMap<CString, CString>, &mut H)
+        -> Result<EventResult, E>,
+{
+    let event = try_or_return_error!(
+        OpenVpnPluginEvent::from_int(unsafe { (*args).event_type }),
+        "Invalid event integer"
+    );
+    let parsed_args = try_or_return_error!(
+        unsafe { ffi::parse::string_array((*args).argv) },
+        "Malformed args from OpenVPN"
+    );
+    let parsed_env = try_or_return_error!(
+        unsafe { ffi::parse::env((*args).envp) },
+        "Malformed env from OpenVPN"
+    );
+
+    let result = panic::catch_unwind(|| {
+        let handle: &mut H = unsafe { &mut *((*args).handle as *mut H) };
+        event_fn(event, &parsed_args, &parsed_env, handle)
+    });
+
+    match result {
+        Ok(Ok(EventResult::Success)) => ffi::OPENVPN_PLUGIN_FUNC_SUCCESS,
+        Ok(Ok(EventResult::Deferred)) => ffi::OPENVPN_PLUGIN_FUNC_DEFERRED,
+        Ok(Ok(EventResult::Failure)) => ffi::OPENVPN_PLUGIN_FUNC_ERROR,
+        Ok(Err(e)) => {
+            logging::log_error(e);
+            ffi::OPENVPN_PLUGIN_FUNC_ERROR
+        }
+        Err(e) => {
+            logging::log_panic("plugin func", e);
+            ffi::OPENVPN_PLUGIN_FUNC_ERROR
+        }
+    }
+}
+
+
+/// Internal error type
+#[derive(Debug)]
+struct Error {
+    msg: &'static str,
+    cause: Box<::std::error::Error>,
+}
+
+impl Error {
+    pub fn new<E>(msg: &'static str, cause: E) -> Error
+    where
+        E: ::std::error::Error + 'static,
+    {
+        Error {
+            msg,
+            cause: Box::new(cause) as Box<::std::error::Error>,
+        }
+    }
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> ::std::result::Result<(), fmt::Error> {
+        use std::error::Error;
+        self.description().fmt(f)
+    }
+}
+
+impl ::std::error::Error for Error {
+    fn description(&self) -> &str {
+        self.msg
+    }
+
+    fn cause(&self) -> Option<&::std::error::Error> {
+        Some(self.cause.as_ref())
     }
 }

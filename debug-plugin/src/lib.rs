@@ -12,7 +12,7 @@
 #[macro_use]
 extern crate openvpn_plugin;
 
-use openvpn_plugin::types::{OpenVpnPluginEvent, EventResult};
+use openvpn_plugin::types::{EventResult, OpenVpnPluginEvent};
 use std::collections::HashMap;
 use std::ffi::CString;
 
