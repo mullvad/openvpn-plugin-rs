@@ -90,8 +90,8 @@ pub unsafe fn env(envptr: *const *const c_char) -> Result<HashMap<CString, CStri
         let string_bytes = string.as_bytes();
         let equal_index = string_bytes
             .iter()
-            .position(|&c| c == '=' as u8)
-            .ok_or(ParseError::NoEqual(string.clone()))?;
+            .position(|&c| c == b'=')
+            .ok_or_else(|| ParseError::NoEqual(string.clone()))?;
 
         // It's safe to unwrap since CString guarantees no null bytes.
         let key = CString::new(&string_bytes[..equal_index]).unwrap();
