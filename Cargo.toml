@@ -8,11 +8,6 @@ categories = ["api-bindings", "external-ffi-bindings", "network-programming"]
 repository = "https://github.com/mullvad/openvpn-plugin-rs"
 license = "MIT/Apache-2.0"
 
-[features]
-default = []
-serialize = ["serde", "serde_derive"]
-
 [dependencies]
-serde = { version = "1.0", optional = true }
-serde_derive = { version = "1.0", optional = true }
+serde = { version = "1.0", optional = true, features = ["derive"] }
 log = { version = "0.3", optional = true }
