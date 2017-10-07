@@ -32,7 +32,7 @@ impl error::Error for InvalidEnumVariant {
 
 /// Enum whose variants correspond to the `OPENVPN_PLUGIN_*` event constants.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum OpenVpnPluginEvent {
     Up = 0,
     Down = 1,
@@ -75,7 +75,7 @@ pub fn events_to_bitmask(events: &[OpenVpnPluginEvent]) -> c_int {
 
 
 /// Enum representing the results an OpenVPN plugin can return from an event callback.
-#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub enum EventResult {
     /// Will return `OPENVPN_PLUGIN_FUNC_SUCCESS` to OpenVPN.
