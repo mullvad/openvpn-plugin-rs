@@ -7,11 +7,11 @@
 // except according to those terms.
 
 use std::collections::HashMap;
+use std::error::Error;
 use std::ffi::{CStr, CString};
+use std::fmt;
 use std::os::raw::c_char;
 use std::str::Utf8Error;
-use std::fmt;
-use std::error::Error;
 
 /// Error type returned by the ffi parsing functions if the input data is invalid in some way.
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
