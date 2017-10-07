@@ -45,8 +45,8 @@
 //! }
 //!
 //! fn openvpn_open(
-//!     args: &[CString],
-//!     env: &HashMap<CString, CString>,
+//!     args: Vec<CString>,
+//!     env: HashMap<CString, CString>,
 //! ) -> Result<(Vec<OpenVpnPluginEvent>, Handle), Error> {
 //!     // Listen to only the `Up` event, which will be fired when a tunnel has been established.
 //!     let events = vec![OpenVpnPluginEvent::Up];
@@ -61,8 +61,8 @@
 //!
 //! fn openvpn_event(
 //!     event: OpenVpnPluginEvent,
-//!     args: &[CString],
-//!     env: &HashMap<CString, CString>,
+//!     args: Vec<CString>,
+//!     env: HashMap<CString, CString>,
 //!     handle: &mut Handle,
 //! ) -> Result<EventResult, Error> {
 //!     /* Process the event */
@@ -159,8 +159,8 @@ mod logging;
 /// # struct Handle {}
 /// # struct Error {}
 /// fn foo_open(
-///     args: &[CString],
-///     env: &HashMap<CString, CString>
+///     args: Vec<CString>,
+///     env: HashMap<CString, CString>
 /// ) -> Result<(Vec<OpenVpnPluginEvent>, Handle), Error> {
 ///     /// ...
 /// #    unimplemented!();
@@ -220,8 +220,8 @@ mod logging;
 /// # struct Error {}
 /// fn foo_event(
 ///     event: OpenVpnPluginEvent,
-///     args: &[CString],
-///     env: &HashMap<CString, CString>,
+///     args: Vec<CString>,
+///     env: HashMap<CString, CString>,
 ///     handle: &mut Handle,
 /// ) -> Result<EventResult, Error> {
 ///     /// ...
@@ -330,7 +330,7 @@ pub fn openvpn_plugin_open<H, E, F>(
 where
     E: ::std::error::Error,
     F: panic::RefUnwindSafe,
-    F: Fn(&[CString], &HashMap<CString, CString>)
+    F: Fn(Vec<CString>, HashMap<CString, CString>)
         -> Result<(Vec<OpenVpnPluginEvent>, H), E>,
 {
     let parsed_args = try_or_return_error!(
@@ -342,7 +342,7 @@ where
         "Malformed env from OpenVPN"
     );
 
-    match panic::catch_unwind(|| open_fn(&parsed_args, &parsed_env)) {
+    match panic::catch_unwind(|| open_fn(parsed_args, parsed_env)) {
         Ok(Ok((events, handle))) => {
             let type_mask = types::events_to_bitmask(&events);
             let handle_ptr = Box::into_raw(Box::new(handle)) as *const c_void;
@@ -395,7 +395,7 @@ pub fn openvpn_plugin_func<H, E, F>(
 where
     E: ::std::error::Error,
     F: panic::RefUnwindSafe,
-    F: Fn(OpenVpnPluginEvent, &[CString], &HashMap<CString, CString>, &mut H)
+    F: Fn(OpenVpnPluginEvent, Vec<CString>, HashMap<CString, CString>, &mut H)
         -> Result<EventResult, E>,
 {
     let event = try_or_return_error!(
@@ -413,7 +413,7 @@ where
 
     let result = panic::catch_unwind(|| {
         let handle: &mut H = unsafe { &mut *((*args).handle as *mut H) };
-        event_fn(event, &parsed_args, &parsed_env, handle)
+        event_fn(event, parsed_args, parsed_env, handle)
     });
 
     match result {
