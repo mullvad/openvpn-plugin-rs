@@ -12,7 +12,8 @@ use std::os::raw::c_int;
 pub mod parse;
 
 /// Rust representations of the C structs sent in and expected back by OpenVPN.
-pub mod structs;
+mod structs;
+pub use self::structs::*;
 
 // Return values. Returned from the plugin to OpenVPN to indicate success or failure. Can also
 // Accept (success) or decline (error) operations, such as incoming client connection attempts.
