@@ -7,11 +7,11 @@
 // except according to those terms.
 
 use std::collections::HashMap;
+use std::error::Error;
 use std::ffi::{CStr, CString};
+use std::fmt;
 use std::os::raw::c_char;
 use std::str::Utf8Error;
-use std::fmt;
-use std::error::Error;
 
 /// Error type returned by the ffi parsing functions if the input data is invalid in some way.
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
@@ -90,8 +90,8 @@ pub unsafe fn env(envptr: *const *const c_char) -> Result<HashMap<CString, CStri
         let string_bytes = string.as_bytes();
         let equal_index = string_bytes
             .iter()
-            .position(|&c| c == '=' as u8)
-            .ok_or(ParseError::NoEqual(string.clone()))?;
+            .position(|&c| c == b'=')
+            .ok_or_else(|| ParseError::NoEqual(string.clone()))?;
 
         // It's safe to unwrap since CString guarantees no null bytes.
         let key = CString::new(&string_bytes[..equal_index]).unwrap();

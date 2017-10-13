@@ -39,8 +39,8 @@ pub static INTERESTING_EVENTS: &[OpenVpnPluginEvent] = &[
 openvpn_plugin!(::openvpn_open, ::lol::openvpn_close, ::openvpn_event, ());
 
 fn openvpn_open(
-    args: &[CString],
-    env: &HashMap<CString, CString>,
+    args: Vec<CString>,
+    env: HashMap<CString, CString>,
 ) -> Result<(Vec<OpenVpnPluginEvent>, ()), ::std::io::Error> {
     println!(
         "DEBUG-PLUGIN: open called:\n\targs: {:?}\n\tenv: {:?}",
@@ -58,8 +58,8 @@ mod lol {
 
 fn openvpn_event(
     event: OpenVpnPluginEvent,
-    args: &[CString],
-    env: &HashMap<CString, CString>,
+    args: Vec<CString>,
+    env: HashMap<CString, CString>,
     _handle: &mut (),
 ) -> Result<EventResult, ::std::io::Error> {
     println!(
