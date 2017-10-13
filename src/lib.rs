@@ -406,7 +406,7 @@ where
     );
 
     let result = panic::catch_unwind(|| {
-        let handle: &mut H = unsafe { &mut *((*args).handle as *mut H) };
+        let handle: &mut H = &mut *((*args).handle as *mut H);
         event_fn(event, parsed_args, parsed_env, handle)
     });
 
