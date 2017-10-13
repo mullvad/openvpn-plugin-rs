@@ -45,11 +45,11 @@ install:
 
 # This is the "test phase", tweak it as you see fit
 test_script:
-  - cargo build --target %TARGET%
-  - cargo test --target %TARGET%
-  - cargo build --features "serde log" --target %TARGET%
-  - cargo test --features "serde log" --target %TARGET%
-  - cd debug-plugin && cargo build --target %TARGET%
+  - cargo build
+  - cargo test
+  - cargo build --features "serde log"
+  - cargo test --features "serde log"
+  - cd debug-plugin && cargo build
 
 # Cache build binaries for faster builds next time
 cache:
