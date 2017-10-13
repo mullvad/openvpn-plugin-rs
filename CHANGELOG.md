@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+
+
+## [0.3.0] - 2017-10-13
 ### Fixed
 - Catch panics from `$open_fn`, `$close_fn` and `$event_fn` instead of unwinding back into C.
 - Correctly handle errors in argument and environment parsing, to not panic unwind into C.
