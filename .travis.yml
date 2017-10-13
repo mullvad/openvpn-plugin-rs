@@ -20,8 +20,8 @@ before_script:
 script:
   - cargo build
   - cargo test
-  - cargo build --features "serialize log"
-  - cargo test --features "serialize log"
+  - cargo build --features "serde log"
+  - cargo test --features "serde log"
   - cd debug-plugin; cargo build
 
 notifications:

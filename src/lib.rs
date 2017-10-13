@@ -99,11 +99,9 @@
 //! [`OPENVPN_PLUGIN_FUNC_ERROR`]: ffi/constant.OPENVPN_PLUGIN_FUNC_ERROR.html
 //! [`catch_unwind`]: https://doc.rust-lang.org/std/panic/fn.catch_unwind.html
 
-#[cfg(feature = "serialize")]
+#[cfg(feature = "serde")]
+#[cfg_attr(feature = "serde", macro_use)]
 extern crate serde;
-#[cfg_attr(feature = "serialize", macro_use)]
-#[cfg(feature = "serialize")]
-extern crate serde_derive;
 
 #[cfg_attr(feature = "log", macro_use)]
 #[cfg(feature = "log")]
@@ -408,7 +406,7 @@ where
     );
 
     let result = panic::catch_unwind(|| {
-        let handle: &mut H = unsafe { &mut *((*args).handle as *mut H) };
+        let handle: &mut H = &mut *((*args).handle as *mut H);
         event_fn(event, parsed_args, parsed_env, handle)
     });
 
