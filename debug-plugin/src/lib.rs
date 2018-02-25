@@ -33,6 +33,7 @@ pub static INTERESTING_EVENTS: &[OpenVpnPluginEvent] = &[
     OpenVpnPluginEvent::TlsFinal,
     OpenVpnPluginEvent::EnablePf,
     OpenVpnPluginEvent::RoutePredown,
+    OpenVpnPluginEvent::AuthFailed,
     // OpenVpnPluginEvent::N,
 ];
 

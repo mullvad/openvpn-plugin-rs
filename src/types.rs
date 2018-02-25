@@ -47,7 +47,8 @@ pub enum OpenVpnPluginEvent {
     TlsFinal = 10,
     EnablePf = 11,
     RoutePredown = 12,
-    N = 13,
+    AuthFailed = 13,
+    N = 14,
 }
 
 impl OpenVpnPluginEvent {
@@ -112,7 +113,7 @@ mod tests {
 
     #[test]
     fn from_int_last() {
-        assert_eq!(OpenVpnPluginEvent::from_int(13), Ok(OpenVpnPluginEvent::N));
+        assert_eq!(OpenVpnPluginEvent::from_int(14), Ok(OpenVpnPluginEvent::N));
     }
 
     #[test]
@@ -132,8 +133,8 @@ mod tests {
 
     #[test]
     fn from_int_invalid() {
-        let result = OpenVpnPluginEvent::from_int(14);
-        assert_eq!(result, Err(InvalidEnumVariant(14)));
+        let result = OpenVpnPluginEvent::from_int(15);
+        assert_eq!(result, Err(InvalidEnumVariant(15)));
     }
 
     #[test]
@@ -163,6 +164,6 @@ mod tests {
     #[test]
     fn events_to_bitmask_many_events() {
         let result = events_to_bitmask(&[OpenVpnPluginEvent::RouteUp, OpenVpnPluginEvent::N]);
-        assert_eq!((1 << 13) | (1 << 2), result);
+        assert_eq!((1 << 14) | (1 << 2), result);
     }
 }
