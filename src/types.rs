@@ -33,6 +33,7 @@ pub enum EventType {
     TlsFinal = 10,
     EnablePf = 11,
     RoutePredown = 12,
+    AuthFailed = 13,
 }
 
 /// Translates a collection of `EventType` instances into a bitmask in the format OpenVPN

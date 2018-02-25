@@ -30,6 +30,7 @@ pub static INTERESTING_EVENTS: &[EventType] = &[
     EventType::TlsFinal,
     EventType::EnablePf,
     EventType::RoutePredown,
+    EventType::AuthFailed,
 ];
 
 openvpn_plugin::openvpn_plugin!(
