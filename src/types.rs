@@ -48,13 +48,12 @@ pub enum OpenVpnPluginEvent {
     EnablePf = 11,
     RoutePredown = 12,
     AuthFailed = 13,
-    N = 14,
 }
 
 impl OpenVpnPluginEvent {
     /// Tries to parse an integer from C into a variant of `OpenVpnPluginEvent`.
     pub fn from_int(i: c_int) -> Result<OpenVpnPluginEvent, InvalidEnumVariant> {
-        if i >= OpenVpnPluginEvent::Up as c_int && i <= OpenVpnPluginEvent::N as c_int {
+        if i >= OpenVpnPluginEvent::Up as c_int && i <= 13 {
             Ok(unsafe {
                 ::std::mem::transmute_copy::<c_int, OpenVpnPluginEvent>(&i)
             })
@@ -113,7 +112,7 @@ mod tests {
 
     #[test]
     fn from_int_last() {
-        assert_eq!(OpenVpnPluginEvent::from_int(14), Ok(OpenVpnPluginEvent::N));
+        assert_eq!(OpenVpnPluginEvent::from_int(13), Ok(OpenVpnPluginEvent::AuthFailed));
     }
 
     #[test]
@@ -133,8 +132,8 @@ mod tests {
 
     #[test]
     fn from_int_invalid() {
-        let result = OpenVpnPluginEvent::from_int(15);
-        assert_eq!(result, Err(InvalidEnumVariant(15)));
+        let result = OpenVpnPluginEvent::from_int(14);
+        assert_eq!(result, Err(InvalidEnumVariant(14)));
     }
 
     #[test]
@@ -163,7 +162,7 @@ mod tests {
 
     #[test]
     fn events_to_bitmask_many_events() {
-        let result = events_to_bitmask(&[OpenVpnPluginEvent::RouteUp, OpenVpnPluginEvent::N]);
-        assert_eq!((1 << 14) | (1 << 2), result);
+        let result = events_to_bitmask(&[OpenVpnPluginEvent::RouteUp, OpenVpnPluginEvent::AuthFailed]);
+        assert_eq!((1 << 13) | (1 << 2), result);
     }
 }
