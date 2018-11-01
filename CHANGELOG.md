@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 ### Changed
 - Prepare for Rust 2018. New required minimum Rustc is 1.30.
+- Rename `OpenVpnPluginEvent` to `EventType`.
+- Rename `EventType::from_int` to `from_repr` and make it return `None` on failure instead of error.
+- Make `types` module private and re-export `EventType` plus `EventResult` at crate root.
+
+### Removed
+- The `EventType::N` variant. It is not a real event.
 
 ### Fixed
 - Force the handle type to be the same across all three callback functions in the `openvpn_plugin!`
