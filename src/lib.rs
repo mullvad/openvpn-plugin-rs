@@ -266,7 +266,7 @@ macro_rules! openvpn_plugin {
         /// Will parse the data from OpenVPN and call the function given as `$open_fn` to the
         /// `openvpn_plugin` macro.
         #[no_mangle]
-        pub extern "C" fn openvpn_plugin_open_v3(
+        pub unsafe extern "C" fn openvpn_plugin_open_v3(
             _version: ::std::os::raw::c_int,
             args: *const $crate::ffi::openvpn_plugin_args_open_in,
             retptr: *mut $crate::ffi::openvpn_plugin_args_open_return,
@@ -277,7 +277,7 @@ macro_rules! openvpn_plugin {
         /// Called by OpenVPN when the plugin is unloaded, just before OpenVPN shuts down.
         /// Will call the function given as `$event_fn` to the `openvpn_plugin` macro.
         #[no_mangle]
-        pub extern "C" fn openvpn_plugin_close_v1(handle: *const ::std::os::raw::c_void) {
+        pub unsafe extern "C" fn openvpn_plugin_close_v1(handle: *const ::std::os::raw::c_void) {
             unsafe { $crate::openvpn_plugin_close(handle, $close_fn) }
         }
 
@@ -287,7 +287,7 @@ macro_rules! openvpn_plugin {
         /// Will parse the data from OpenVPN and call the function given as `$event_fn` to the
         /// `openvpn_plugin` macro.
         #[no_mangle]
-        pub extern "C" fn openvpn_plugin_func_v3(
+        pub unsafe extern "C" fn openvpn_plugin_func_v3(
             _version: ::std::os::raw::c_int,
             args: *const $crate::ffi::openvpn_plugin_args_func_in,
             _retptr: *const $crate::ffi::openvpn_plugin_args_func_return,
