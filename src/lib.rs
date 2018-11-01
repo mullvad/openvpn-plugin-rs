@@ -351,7 +351,7 @@ where
             ffi::OPENVPN_PLUGIN_FUNC_ERROR
         }
         Err(e) => {
-            log_panic!("plugin open", e);
+            log_panic!("plugin open", &e);
             ffi::OPENVPN_PLUGIN_FUNC_ERROR
         }
     }
@@ -372,7 +372,7 @@ where
     // handle object to be properly deallocated when `$close_fn` returns.
     let handle = *Box::from_raw(handle as *mut H);
     if let Err(e) = panic::catch_unwind(|| close_fn(handle)) {
-        log_panic!("plugin close", e);
+        log_panic!("plugin close", &e);
     }
 }
 
@@ -419,7 +419,7 @@ where
             ffi::OPENVPN_PLUGIN_FUNC_ERROR
         }
         Err(e) => {
-            log_panic!("plugin func", e);
+            log_panic!("plugin func", &e);
             ffi::OPENVPN_PLUGIN_FUNC_ERROR
         }
     }

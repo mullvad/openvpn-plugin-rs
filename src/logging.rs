@@ -38,8 +38,7 @@ macro_rules! log_panic {
 pub fn try_write_stderr(msg: &str) {
     use std::io::{self, Write};
     let mut stderr = io::stderr();
-    let _ = write!(stderr, "{}\n", msg);
-    let _ = stderr.flush();
+    let _ = writeln!(stderr, "{}", msg);
 }
 
 
@@ -53,7 +52,7 @@ pub fn format_error<E: ::std::error::Error>(error: &E) -> String {
     error_string
 }
 
-pub fn format_panic(source: &str, panic_payload: Box<Any + Send + 'static>) -> String {
+pub fn format_panic(source: &str, panic_payload: &Box<Any + Send + 'static>) -> String {
     static NO_MSG: &'static str = "No panic message";
     let panic_msg = panic_payload.downcast_ref::<&str>().unwrap_or(&NO_MSG);
     format!("Panic in the {} callback: {:?}", source, panic_msg)
