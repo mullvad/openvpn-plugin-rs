@@ -7,7 +7,7 @@ pub fn log_error(error: &impl Error) {
     let error_msg = format_error(error);
     #[cfg(feature = "log")]
     {
-        error!("{}", error_msg);
+        log::error!("{}", error_msg);
     }
     #[cfg(not(feature = "log"))]
     {
@@ -22,7 +22,7 @@ pub fn log_panic(source: &str, panic_payload: &Box<Any + Send + 'static>) {
 
     #[cfg(feature = "log")]
     {
-        error!("Panic in the {} callback: {:?}", source, panic_msg);
+        log::error!("Panic in the {} callback: {:?}", source, panic_msg);
     }
     #[cfg(not(feature = "log"))]
     {
