@@ -106,7 +106,7 @@ extern crate serde;
 #[cfg(feature = "log")]
 extern crate log;
 
-use types::{EventResult, OpenVpnPluginEvent};
+use crate::types::{EventResult, OpenVpnPluginEvent};
 
 use std::collections::HashMap;
 use std::ffi::CString;
