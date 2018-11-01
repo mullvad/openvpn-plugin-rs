@@ -15,6 +15,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+### Changed
+- Prepare for Rust 2018. New required minimum Rustc is 1.30.
+
+### Fixed
+- Force the handle type to be the same across all three callback functions in the `openvpn_plugin!`
+  macro.
 
 
 ## [0.3.0] - 2017-10-13
