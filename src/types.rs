@@ -54,9 +54,7 @@ impl OpenVpnPluginEvent {
     /// Tries to parse an integer from C into a variant of `OpenVpnPluginEvent`.
     pub fn from_int(i: c_int) -> Result<OpenVpnPluginEvent, InvalidEnumVariant> {
         if i >= OpenVpnPluginEvent::Up as c_int && i <= OpenVpnPluginEvent::N as c_int {
-            Ok(unsafe {
-                ::std::mem::transmute_copy::<c_int, OpenVpnPluginEvent>(&i)
-            })
+            Ok(unsafe { ::std::mem::transmute_copy::<c_int, OpenVpnPluginEvent>(&i) })
         } else {
             Err(InvalidEnumVariant(i))
         }

@@ -7,14 +7,14 @@ use std::any::Any;
 macro_rules! log_error {
     ($error:expr) => {
         error!("{}", logging::format_error(&$error));
-    }
+    };
 }
 
 #[cfg(feature = "log")]
 macro_rules! log_panic {
     ($source:expr, $panic_payload:expr) => {
         error!("{}", logging::format_panic($source, $panic_payload));
-    }
+    };
 }
 
 /// Error logging method used by the FFI functions to log if `$open_fn` or `$event_fn` return an
@@ -24,14 +24,14 @@ macro_rules! log_panic {
 macro_rules! log_error {
     ($error:expr) => {{
         logging::try_write_stderr(&logging::format_error(&$error));
-    }}
+    }};
 }
 
 #[cfg(not(feature = "log"))]
 macro_rules! log_panic {
     ($source:expr, $panic_payload:expr) => {{
         logging::try_write_stderr(&logging::format_panic($source, $panic_payload));
-    }}
+    }};
 }
 
 #[cfg(not(feature = "log"))]
