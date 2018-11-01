@@ -83,8 +83,8 @@
 //! [`openvpn_plugin!`] \(`$open_fn`, `$close_fn` and `$event_fn`) are wrapped by
 //! [`catch_unwind`].
 //!
-//! If [`catch_unwind`] captures a panic it will log it and then return [`OPENVPN_PLUGIN_FUNC_ERROR`]
-//! to OpenVPN.
+//! If [`catch_unwind`] captures a panic it will log it and then return
+//! [`OPENVPN_PLUGIN_FUNC_ERROR`] to OpenVPN.
 //!
 //! Note that this will only work for unwinding panics, not with `panic=abort`.
 //!
@@ -94,7 +94,6 @@
 //! logged by this crate before control is returned to OpenVPN. By default logging happens to
 //! stderr. To activate logging with the `error!` macro in the `log` crate, build this crate with
 // the `log` feature.
-//!
 //! [`openvpn_plugin!`]: macro.openvpn_plugin.html
 //! [`OPENVPN_PLUGIN_FUNC_ERROR`]: ffi/constant.OPENVPN_PLUGIN_FUNC_ERROR.html
 //! [`catch_unwind`]: https://doc.rust-lang.org/std/panic/fn.catch_unwind.html
@@ -266,7 +265,7 @@ macro_rules! openvpn_plugin {
         /// Will parse the data from OpenVPN and call the function given as `$open_fn` to the
         /// `openvpn_plugin` macro.
         #[no_mangle]
-        pub extern "C" fn openvpn_plugin_open_v3(
+        pub unsafe extern "C" fn openvpn_plugin_open_v3(
             _version: ::std::os::raw::c_int,
             args: *const $crate::ffi::openvpn_plugin_args_open_in,
             retptr: *mut $crate::ffi::openvpn_plugin_args_open_return,
@@ -277,7 +276,7 @@ macro_rules! openvpn_plugin {
         /// Called by OpenVPN when the plugin is unloaded, just before OpenVPN shuts down.
         /// Will call the function given as `$event_fn` to the `openvpn_plugin` macro.
         #[no_mangle]
-        pub extern "C" fn openvpn_plugin_close_v1(handle: *const ::std::os::raw::c_void) {
+        pub unsafe extern "C" fn openvpn_plugin_close_v1(handle: *const ::std::os::raw::c_void) {
             unsafe { $crate::openvpn_plugin_close(handle, $close_fn) }
         }
 
@@ -287,14 +286,14 @@ macro_rules! openvpn_plugin {
         /// Will parse the data from OpenVPN and call the function given as `$event_fn` to the
         /// `openvpn_plugin` macro.
         #[no_mangle]
-        pub extern "C" fn openvpn_plugin_func_v3(
+        pub unsafe extern "C" fn openvpn_plugin_func_v3(
             _version: ::std::os::raw::c_int,
             args: *const $crate::ffi::openvpn_plugin_args_func_in,
             _retptr: *const $crate::ffi::openvpn_plugin_args_func_return,
         ) -> ::std::os::raw::c_int {
             unsafe { $crate::openvpn_plugin_func(args, $event_fn) }
         }
-    }
+    };
 }
 
 
@@ -311,7 +310,7 @@ macro_rules! try_or_return_error {
                 return ffi::OPENVPN_PLUGIN_FUNC_ERROR;
             }
         };
-    }
+    };
 }
 
 
@@ -328,17 +327,14 @@ pub unsafe fn openvpn_plugin_open<H, E, F>(
 where
     E: ::std::error::Error,
     F: panic::RefUnwindSafe,
-    F: Fn(Vec<CString>, HashMap<CString, CString>)
-        -> Result<(Vec<OpenVpnPluginEvent>, H), E>,
+    F: Fn(Vec<CString>, HashMap<CString, CString>) -> Result<(Vec<OpenVpnPluginEvent>, H), E>,
 {
     let parsed_args = try_or_return_error!(
         ffi::parse::string_array((*args).argv),
         "Malformed args from OpenVPN"
     );
-    let parsed_env = try_or_return_error!(
-        ffi::parse::env((*args).envp),
-        "Malformed env from OpenVPN"
-    );
+    let parsed_env =
+        try_or_return_error!(ffi::parse::env((*args).envp), "Malformed env from OpenVPN");
 
     match panic::catch_unwind(|| open_fn(parsed_args, parsed_env)) {
         Ok(Ok((events, handle))) => {
@@ -351,7 +347,7 @@ where
             ffi::OPENVPN_PLUGIN_FUNC_ERROR
         }
         Err(e) => {
-            log_panic!("plugin open", e);
+            log_panic!("plugin open", &e);
             ffi::OPENVPN_PLUGIN_FUNC_ERROR
         }
     }
@@ -372,7 +368,7 @@ where
     // handle object to be properly deallocated when `$close_fn` returns.
     let handle = *Box::from_raw(handle as *mut H);
     if let Err(e) = panic::catch_unwind(|| close_fn(handle)) {
-        log_panic!("plugin close", e);
+        log_panic!("plugin close", &e);
     }
 }
 
@@ -400,10 +396,8 @@ where
         ffi::parse::string_array((*args).argv),
         "Malformed args from OpenVPN"
     );
-    let parsed_env = try_or_return_error!(
-        ffi::parse::env((*args).envp),
-        "Malformed env from OpenVPN"
-    );
+    let parsed_env =
+        try_or_return_error!(ffi::parse::env((*args).envp), "Malformed env from OpenVPN");
 
     let result = panic::catch_unwind(|| {
         let handle: &mut H = &mut *((*args).handle as *mut H);
@@ -419,7 +413,7 @@ where
             ffi::OPENVPN_PLUGIN_FUNC_ERROR
         }
         Err(e) => {
-            log_panic!("plugin func", e);
+            log_panic!("plugin func", &e);
             ffi::OPENVPN_PLUGIN_FUNC_ERROR
         }
     }

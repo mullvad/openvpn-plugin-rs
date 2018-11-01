@@ -120,10 +120,9 @@ mod tests {
 
     #[test]
     fn string_array_null() {
-        assert_eq!(
-            Err(ParseError::NullPtr),
-            unsafe { string_array(ptr::null()) }
-        );
+        assert_eq!(Err(ParseError::NullPtr), unsafe {
+            string_array(ptr::null())
+        });
     }
 
     #[test]
