@@ -11,28 +11,27 @@
 
 extern crate openvpn_plugin;
 
-use openvpn_plugin::types::{EventResult, OpenVpnPluginEvent};
+use openvpn_plugin::{EventResult, EventType};
 use std::collections::HashMap;
 use std::ffi::CString;
 
 /// The list of OpenVPN events we register for. The list contains all possible events, but some of
 /// them are commented out since they work slightly different, and will not work with the simple
 /// log-and-return-success implementation we have here.
-pub static INTERESTING_EVENTS: &[OpenVpnPluginEvent] = &[
-    OpenVpnPluginEvent::Up,
-    OpenVpnPluginEvent::Down,
-    OpenVpnPluginEvent::RouteUp,
-    OpenVpnPluginEvent::IpChange,
-    // OpenVpnPluginEvent::TlsVerify,
-    // OpenVpnPluginEvent::AuthUserPassVerify,
-    OpenVpnPluginEvent::ClientConnect,
-    OpenVpnPluginEvent::ClientDisconnect,
-    OpenVpnPluginEvent::LearnAddress,
-    OpenVpnPluginEvent::ClientConnectV2,
-    OpenVpnPluginEvent::TlsFinal,
-    OpenVpnPluginEvent::EnablePf,
-    OpenVpnPluginEvent::RoutePredown,
-    // OpenVpnPluginEvent::N,
+pub static INTERESTING_EVENTS: &[EventType] = &[
+    EventType::Up,
+    EventType::Down,
+    EventType::RouteUp,
+    EventType::IpChange,
+    // EventType::TlsVerify,
+    // EventType::AuthUserPassVerify,
+    EventType::ClientConnect,
+    EventType::ClientDisconnect,
+    EventType::LearnAddress,
+    EventType::ClientConnectV2,
+    EventType::TlsFinal,
+    EventType::EnablePf,
+    EventType::RoutePredown,
 ];
 
 openvpn_plugin::openvpn_plugin!(
@@ -45,7 +44,7 @@ openvpn_plugin::openvpn_plugin!(
 fn debug_open(
     args: Vec<CString>,
     env: HashMap<CString, CString>,
-) -> Result<(Vec<OpenVpnPluginEvent>, ()), ::std::io::Error> {
+) -> Result<(Vec<EventType>, ()), ::std::io::Error> {
     println!(
         "DEBUG-PLUGIN: open called:\n\targs: {:?}\n\tenv: {:?}",
         args, env
@@ -60,7 +59,7 @@ mod lol {
 }
 
 fn debug_event(
-    event: OpenVpnPluginEvent,
+    event: EventType,
     args: Vec<CString>,
     env: HashMap<CString, CString>,
     _handle: &mut (),

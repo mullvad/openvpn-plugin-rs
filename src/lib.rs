@@ -38,7 +38,7 @@
 //! use std::collections::HashMap;
 //! use std::ffi::CString;
 //! use std::io::Error;
-//! use openvpn_plugin::types::{EventResult, OpenVpnPluginEvent};
+//! use openvpn_plugin::{EventResult, EventType};
 //!
 //! pub struct Handle {
 //!     // Fields needed for the plugin to keep state between callbacks
@@ -47,9 +47,9 @@
 //! fn openvpn_open(
 //!     args: Vec<CString>,
 //!     env: HashMap<CString, CString>,
-//! ) -> Result<(Vec<OpenVpnPluginEvent>, Handle), Error> {
+//! ) -> Result<(Vec<EventType>, Handle), Error> {
 //!     // Listen to only the `Up` event, which will be fired when a tunnel has been established.
-//!     let events = vec![OpenVpnPluginEvent::Up];
+//!     let events = vec![EventType::Up];
 //!     // Create the handle instance.
 //!     let handle = Handle { /* ... */ };
 //!     Ok((events, handle))
@@ -60,7 +60,7 @@
 //! }
 //!
 //! fn openvpn_event(
-//!     event: OpenVpnPluginEvent,
+//!     event: EventType,
 //!     args: Vec<CString>,
 //!     env: HashMap<CString, CString>,
 //!     handle: &mut Handle,
@@ -106,13 +106,15 @@ extern crate serde;
 #[cfg(feature = "log")]
 extern crate log;
 
-use crate::types::{EventResult, OpenVpnPluginEvent};
+extern crate enum_repr;
 
-use std::collections::HashMap;
-use std::ffi::CString;
-use std::fmt;
-use std::os::raw::{c_int, c_void};
-use std::panic;
+use std::{
+    collections::HashMap,
+    ffi::CString,
+    fmt,
+    os::raw::{c_int, c_void},
+    panic,
+};
 
 /// FFI types and functions used by the plugin to convert between the types OpenVPN pass and expect
 /// back and the Rust types the plugin will be exposed to.
@@ -123,11 +125,12 @@ pub mod ffi;
 
 /// Rust types representing values and instructions from and to OpenVPN. Intended to be the safe
 /// abstraction exposed to the plugins.
-pub mod types;
+mod types;
 
 /// Functions for logging errors that occur in plugins.
 mod logging;
 
+pub use crate::types::{EventResult, EventType};
 
 /// The main part of this crate. The macro generates the public FFI functions that OpenVPN looks
 /// for in a shared library:
@@ -149,7 +152,7 @@ mod logging;
 /// Should be a function with the following signature:
 ///
 /// ```rust,no_run
-/// # use openvpn_plugin::types::OpenVpnPluginEvent;
+/// # use openvpn_plugin::EventType;
 /// # use std::ffi::CString;
 /// # use std::collections::HashMap;
 /// # struct Handle {}
@@ -157,7 +160,7 @@ mod logging;
 /// fn foo_open(
 ///     args: Vec<CString>,
 ///     env: HashMap<CString, CString>
-/// ) -> Result<(Vec<OpenVpnPluginEvent>, Handle), Error> {
+/// ) -> Result<(Vec<EventType>, Handle), Error> {
 ///     /// ...
 /// #    unimplemented!();
 /// }
@@ -209,13 +212,13 @@ mod logging;
 /// Should be a function with the following signature:
 ///
 /// ```rust,no_run
-/// # use openvpn_plugin::types::{EventResult, OpenVpnPluginEvent};
+/// # use openvpn_plugin::{EventResult, EventType};
 /// # use std::ffi::CString;
 /// # use std::collections::HashMap;
 /// # struct Handle {}
 /// # struct Error {}
 /// fn foo_event(
-///     event: OpenVpnPluginEvent,
+///     event: EventType,
 ///     args: Vec<CString>,
 ///     env: HashMap<CString, CString>,
 ///     handle: &mut Handle,
@@ -239,7 +242,7 @@ mod logging;
 /// for happens. This can for example be that a tunnel is established or that a client wants to
 /// authenticate.
 ///
-/// The first argument, [`OpenVpnPluginEvent`], will tell which event that is happening.
+/// The first argument, [`EventType`], will tell which event that is happening.
 ///
 ///
 /// ## `$handle_ty` - The handle type
@@ -251,7 +254,7 @@ mod logging;
 /// The handle instance is being dropped upon return from the `$close_fn` function just as the
 /// plugin is being unloaded.
 ///
-/// [`OpenVpnPluginEvent`]: types/enum.OpenVpnPluginEvent.html
+/// [`EventType`]: types/enum.EventType.html
 /// [`OPENVPN_PLUGIN_FUNC_ERROR`]: ffi/constant.OPENVPN_PLUGIN_FUNC_ERROR.html
 #[macro_export]
 macro_rules! openvpn_plugin {
@@ -326,7 +329,7 @@ pub unsafe fn openvpn_plugin_open<H, E, F>(
 where
     E: ::std::error::Error,
     F: panic::RefUnwindSafe,
-    F: Fn(Vec<CString>, HashMap<CString, CString>) -> Result<(Vec<OpenVpnPluginEvent>, H), E>,
+    F: Fn(Vec<CString>, HashMap<CString, CString>) -> Result<(Vec<EventType>, H), E>,
 {
     let parsed_args = try_or_return_error!(
         ffi::parse::string_array((*args).argv),
@@ -384,11 +387,11 @@ pub unsafe fn openvpn_plugin_func<H, E, F>(
 where
     E: ::std::error::Error,
     F: panic::RefUnwindSafe,
-    F: Fn(OpenVpnPluginEvent, Vec<CString>, HashMap<CString, CString>, &mut H)
-        -> Result<EventResult, E>,
+    F: Fn(EventType, Vec<CString>, HashMap<CString, CString>, &mut H) -> Result<EventResult, E>,
 {
+    let event_type = (*args).event_type;
     let event = try_or_return_error!(
-        OpenVpnPluginEvent::from_int((*args).event_type),
+        EventType::from_repr(event_type).ok_or_else(|| InvalidEventType(event_type)),
         "Invalid event integer"
     );
     let parsed_args = try_or_return_error!(
@@ -452,5 +455,21 @@ impl ::std::error::Error for Error {
 
     fn cause(&self) -> Option<&::std::error::Error> {
         Some(self.cause.as_ref())
+    }
+}
+
+/// Error thrown when trying to convert from an invalid integer into an `Event`.
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+struct InvalidEventType(c_int);
+
+impl fmt::Display for InvalidEventType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        write!(f, "{} is not a valid OPENVPN_PLUGIN_* constant", self.0)
+    }
+}
+
+impl ::std::error::Error for InvalidEventType {
+    fn description(&self) -> &str {
+        "Integer does not match any OPENVPN_PLUGIN_* constant"
     }
 }
