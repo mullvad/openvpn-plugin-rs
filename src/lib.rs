@@ -126,7 +126,6 @@ pub mod ffi;
 pub mod types;
 
 /// Functions for logging errors that occur in plugins.
-#[macro_use]
 mod logging;
 
 
@@ -306,7 +305,7 @@ macro_rules! try_or_return_error {
         match $result {
             Ok(result) => result,
             Err(e) => {
-                log_error!(Error::new($error_msg, e));
+                logging::log_error(&Error::new($error_msg, e));
                 return ffi::OPENVPN_PLUGIN_FUNC_ERROR;
             }
         };
@@ -343,11 +342,11 @@ where
             ffi::OPENVPN_PLUGIN_FUNC_SUCCESS
         }
         Ok(Err(e)) => {
-            log_error!(e);
+            logging::log_error(&e);
             ffi::OPENVPN_PLUGIN_FUNC_ERROR
         }
         Err(e) => {
-            log_panic!("plugin open", &e);
+            logging::log_panic("plugin open", &e);
             ffi::OPENVPN_PLUGIN_FUNC_ERROR
         }
     }
@@ -368,7 +367,7 @@ where
     // handle object to be properly deallocated when `$close_fn` returns.
     let handle = *Box::from_raw(handle as *mut H);
     if let Err(e) = panic::catch_unwind(|| close_fn(handle)) {
-        log_panic!("plugin close", &e);
+        logging::log_panic("plugin close", &e);
     }
 }
 
@@ -409,11 +408,11 @@ where
         Ok(Ok(EventResult::Deferred)) => ffi::OPENVPN_PLUGIN_FUNC_DEFERRED,
         Ok(Ok(EventResult::Failure)) => ffi::OPENVPN_PLUGIN_FUNC_ERROR,
         Ok(Err(e)) => {
-            log_error!(e);
+            logging::log_error(&e);
             ffi::OPENVPN_PLUGIN_FUNC_ERROR
         }
         Err(e) => {
-            log_panic!("plugin func", &e);
+            logging::log_panic("plugin func", &e);
             ffi::OPENVPN_PLUGIN_FUNC_ERROR
         }
     }

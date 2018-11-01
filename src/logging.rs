@@ -1,40 +1,36 @@
-use std::any::Any;
+use std::{any::Any, error::Error};
 
 /// Error logging method used by the FFI functions to log if `$open_fn` or `$event_fn` return an
-/// error. This version logs using the `error!` macro of the log crate. Compile without the `log`
-/// feature to make it print to stderr.
-#[cfg(feature = "log")]
-macro_rules! log_error {
-    ($error:expr) => {
-        error!("{}", logging::format_error(&$error));
-    };
+/// error. It logs to the error log level of the `log` crate if the `log` feature is enabled.
+/// Otherwise it will print the error to stderr.
+pub fn log_error(error: &impl Error) {
+    let error_msg = format_error(error);
+    #[cfg(feature = "log")]
+    {
+        error!("{}", error_msg);
+    }
+    #[cfg(not(feature = "log"))]
+    {
+        eprintln!("{}", error_msg);
+    }
 }
 
-#[cfg(feature = "log")]
-macro_rules! log_panic {
-    ($source:expr, $panic_payload:expr) => {
-        error!("{}", logging::format_panic($source, $panic_payload));
-    };
+pub fn log_panic(source: &str, panic_payload: &Box<Any + Send + 'static>) {
+    let panic_msg = panic_payload
+        .downcast_ref::<&str>()
+        .unwrap_or(&"No panic message");
+
+    #[cfg(feature = "log")]
+    {
+        error!("Panic in the {} callback: {:?}", source, panic_msg);
+    }
+    #[cfg(not(feature = "log"))]
+    {
+        eprintln!("Panic in the {} callback: {:?}", source, panic_msg);
+    }
 }
 
-/// Error logging method used by the FFI functions to log if `$open_fn` or `$event_fn` return an
-/// error. This version only prints to stderr. Build the crate with the `log` feature to log using
-/// the `error!` macro.
-#[cfg(not(feature = "log"))]
-macro_rules! log_error {
-    ($error:expr) => {{
-        eprintln!("{}", &logging::format_error(&$error));
-    }};
-}
-
-#[cfg(not(feature = "log"))]
-macro_rules! log_panic {
-    ($source:expr, $panic_payload:expr) => {{
-        eprintln!("{}", &logging::format_panic($source, $panic_payload));
-    }};
-}
-
-pub fn format_error<E: ::std::error::Error>(error: &E) -> String {
+fn format_error<E: ::std::error::Error>(error: &E) -> String {
     let mut error_string = format!("Error: {}", error);
     let mut error_iter = error.cause();
     while let Some(e) = error_iter {
@@ -42,10 +38,4 @@ pub fn format_error<E: ::std::error::Error>(error: &E) -> String {
         error_iter = e.cause();
     }
     error_string
-}
-
-pub fn format_panic(source: &str, panic_payload: &Box<Any + Send + 'static>) -> String {
-    static NO_MSG: &'static str = "No panic message";
-    let panic_msg = panic_payload.downcast_ref::<&str>().unwrap_or(&NO_MSG);
-    format!("Panic in the {} callback: {:?}", source, panic_msg)
 }
