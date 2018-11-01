@@ -23,24 +23,16 @@ macro_rules! log_panic {
 #[cfg(not(feature = "log"))]
 macro_rules! log_error {
     ($error:expr) => {{
-        logging::try_write_stderr(&logging::format_error(&$error));
+        eprintln!("{}", &logging::format_error(&$error));
     }};
 }
 
 #[cfg(not(feature = "log"))]
 macro_rules! log_panic {
     ($source:expr, $panic_payload:expr) => {{
-        logging::try_write_stderr(&logging::format_panic($source, $panic_payload));
+        eprintln!("{}", &logging::format_panic($source, $panic_payload));
     }};
 }
-
-#[cfg(not(feature = "log"))]
-pub fn try_write_stderr(msg: &str) {
-    use std::io::{self, Write};
-    let mut stderr = io::stderr();
-    let _ = writeln!(stderr, "{}", msg);
-}
-
 
 pub fn format_error<E: ::std::error::Error>(error: &E) -> String {
     let mut error_string = format!("Error: {}", error);
