@@ -105,7 +105,7 @@ extern crate serde;
 #[cfg(feature = "log")]
 extern crate log;
 
-extern crate enum_repr;
+extern crate derive_try_from_primitive;
 
 use std::{
     collections::HashMap,
@@ -390,7 +390,7 @@ where
 {
     let event_type = (*args).event_type;
     let event = try_or_return_error!(
-        EventType::from_repr(event_type).ok_or_else(|| InvalidEventType(event_type)),
+        EventType::try_from(event_type).ok_or_else(|| InvalidEventType(event_type)),
         "Invalid event integer"
     );
     let parsed_args = try_or_return_error!(
