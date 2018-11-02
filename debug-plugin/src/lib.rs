@@ -9,7 +9,6 @@
 //! This debug/example OpenVPN plugin listens for almost all events and prints the arguments
 //! for each event callback and returns success in every case.
 
-#[macro_use]
 extern crate openvpn_plugin;
 
 use openvpn_plugin::types::{EventResult, OpenVpnPluginEvent};
@@ -36,27 +35,31 @@ pub static INTERESTING_EVENTS: &[OpenVpnPluginEvent] = &[
     // OpenVpnPluginEvent::N,
 ];
 
-openvpn_plugin!(::openvpn_open, ::lol::openvpn_close, ::openvpn_event, ());
+openvpn_plugin::openvpn_plugin!(
+    crate::debug_open,
+    crate::lol::debug_close,
+    crate::debug_event,
+    ()
+);
 
-fn openvpn_open(
+fn debug_open(
     args: Vec<CString>,
     env: HashMap<CString, CString>,
 ) -> Result<(Vec<OpenVpnPluginEvent>, ()), ::std::io::Error> {
     println!(
         "DEBUG-PLUGIN: open called:\n\targs: {:?}\n\tenv: {:?}",
-        args,
-        env
+        args, env
     );
     Ok((INTERESTING_EVENTS.to_vec(), ()))
 }
 
 mod lol {
-    pub fn openvpn_close(_handle: ()) {
+    pub fn debug_close(_handle: ()) {
         println!("DEBUG-PLUGIN: close called")
     }
 }
 
-fn openvpn_event(
+fn debug_event(
     event: OpenVpnPluginEvent,
     args: Vec<CString>,
     env: HashMap<CString, CString>,
@@ -64,9 +67,7 @@ fn openvpn_event(
 ) -> Result<EventResult, ::std::io::Error> {
     println!(
         "DEBUG-PLUGIN: event called:\n\tevent: {:?}\n\targs: {:?}\n\tenv: {:?}",
-        event,
-        args,
-        env
+        event, args, env
     );
     Ok(EventResult::Success)
 }

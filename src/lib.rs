@@ -106,7 +106,7 @@ extern crate serde;
 #[cfg(feature = "log")]
 extern crate log;
 
-use types::{EventResult, OpenVpnPluginEvent};
+use crate::types::{EventResult, OpenVpnPluginEvent};
 
 use std::collections::HashMap;
 use std::ffi::CString;
@@ -126,7 +126,6 @@ pub mod ffi;
 pub mod types;
 
 /// Functions for logging errors that occur in plugins.
-#[macro_use]
 mod logging;
 
 
@@ -270,14 +269,14 @@ macro_rules! openvpn_plugin {
             args: *const $crate::ffi::openvpn_plugin_args_open_in,
             retptr: *mut $crate::ffi::openvpn_plugin_args_open_return,
         ) -> ::std::os::raw::c_int {
-            unsafe { $crate::openvpn_plugin_open(args, retptr, $open_fn) }
+            unsafe { $crate::openvpn_plugin_open::<$handle_ty, _, _>(args, retptr, $open_fn) }
         }
 
         /// Called by OpenVPN when the plugin is unloaded, just before OpenVPN shuts down.
         /// Will call the function given as `$event_fn` to the `openvpn_plugin` macro.
         #[no_mangle]
         pub unsafe extern "C" fn openvpn_plugin_close_v1(handle: *const ::std::os::raw::c_void) {
-            unsafe { $crate::openvpn_plugin_close(handle, $close_fn) }
+            unsafe { $crate::openvpn_plugin_close::<$handle_ty, _>(handle, $close_fn) }
         }
 
         /// Called by OpenVPN for each `OPENVPN_PLUGIN_*` event that it registered for in
@@ -291,7 +290,7 @@ macro_rules! openvpn_plugin {
             args: *const $crate::ffi::openvpn_plugin_args_func_in,
             _retptr: *const $crate::ffi::openvpn_plugin_args_func_return,
         ) -> ::std::os::raw::c_int {
-            unsafe { $crate::openvpn_plugin_func(args, $event_fn) }
+            unsafe { $crate::openvpn_plugin_func::<$handle_ty, _, _>(args, $event_fn) }
         }
     };
 }
@@ -306,7 +305,7 @@ macro_rules! try_or_return_error {
         match $result {
             Ok(result) => result,
             Err(e) => {
-                log_error!(Error::new($error_msg, e));
+                logging::log_error(&Error::new($error_msg, e));
                 return ffi::OPENVPN_PLUGIN_FUNC_ERROR;
             }
         };
@@ -343,11 +342,11 @@ where
             ffi::OPENVPN_PLUGIN_FUNC_SUCCESS
         }
         Ok(Err(e)) => {
-            log_error!(e);
+            logging::log_error(&e);
             ffi::OPENVPN_PLUGIN_FUNC_ERROR
         }
         Err(e) => {
-            log_panic!("plugin open", &e);
+            logging::log_panic("plugin open", &e);
             ffi::OPENVPN_PLUGIN_FUNC_ERROR
         }
     }
@@ -368,7 +367,7 @@ where
     // handle object to be properly deallocated when `$close_fn` returns.
     let handle = *Box::from_raw(handle as *mut H);
     if let Err(e) = panic::catch_unwind(|| close_fn(handle)) {
-        log_panic!("plugin close", &e);
+        logging::log_panic("plugin close", &e);
     }
 }
 
@@ -409,11 +408,11 @@ where
         Ok(Ok(EventResult::Deferred)) => ffi::OPENVPN_PLUGIN_FUNC_DEFERRED,
         Ok(Ok(EventResult::Failure)) => ffi::OPENVPN_PLUGIN_FUNC_ERROR,
         Ok(Err(e)) => {
-            log_error!(e);
+            logging::log_error(&e);
             ffi::OPENVPN_PLUGIN_FUNC_ERROR
         }
         Err(e) => {
-            log_panic!("plugin func", &e);
+            logging::log_panic("plugin func", &e);
             ffi::OPENVPN_PLUGIN_FUNC_ERROR
         }
     }
