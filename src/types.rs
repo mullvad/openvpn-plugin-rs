@@ -9,31 +9,17 @@
 //! Constants for OpenVPN. Taken from include/openvpn-plugin.h in the OpenVPN repository:
 //! https://github.com/OpenVPN/openvpn/blob/master/include/openvpn-plugin.h.in
 
-use std::error;
-use std::fmt;
 use std::os::raw::c_int;
 
-/// Error thrown when trying to convert from an invalid integer into an `OpenVpnPluginEvent`.
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-pub struct InvalidEnumVariant(c_int);
-
-impl fmt::Display for InvalidEnumVariant {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        write!(f, "{} is not a valid OPENVPN_PLUGIN_* constant", self.0)
-    }
-}
-
-impl error::Error for InvalidEnumVariant {
-    fn description(&self) -> &str {
-        "Integer does not match any enum variant"
-    }
-}
+use derive_try_from_primitive::TryFromPrimitive;
 
 
-/// Enum whose variants correspond to the `OPENVPN_PLUGIN_*` event constants.
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+/// All the events that an OpenVPN plugin can register for and get notified about.
+/// This is a Rust representation of the constants named ´OPENVPN_PLUGIN_*` in `openvpn-plugin.h`.
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, TryFromPrimitive)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub enum OpenVpnPluginEvent {
+#[repr(i32)]
+pub enum EventType {
     Up = 0,
     Down = 1,
     RouteUp = 2,
@@ -47,23 +33,11 @@ pub enum OpenVpnPluginEvent {
     TlsFinal = 10,
     EnablePf = 11,
     RoutePredown = 12,
-    N = 13,
 }
 
-impl OpenVpnPluginEvent {
-    /// Tries to parse an integer from C into a variant of `OpenVpnPluginEvent`.
-    pub fn from_int(i: c_int) -> Result<OpenVpnPluginEvent, InvalidEnumVariant> {
-        if i >= OpenVpnPluginEvent::Up as c_int && i <= OpenVpnPluginEvent::N as c_int {
-            Ok(unsafe { ::std::mem::transmute_copy::<c_int, OpenVpnPluginEvent>(&i) })
-        } else {
-            Err(InvalidEnumVariant(i))
-        }
-    }
-}
-
-/// Translates a collection of `OpenVpnPluginEvent` instances into a bitmask in the format OpenVPN
+/// Translates a collection of `EventType` instances into a bitmask in the format OpenVPN
 /// expects it in `type_mask`.
-pub fn events_to_bitmask(events: &[OpenVpnPluginEvent]) -> c_int {
+pub fn events_to_bitmask(events: &[EventType]) -> c_int {
     let mut bitmask: c_int = 0;
     for event in events {
         bitmask |= 1 << (*event as i32);
@@ -82,7 +56,7 @@ pub enum EventResult {
     Success,
 
     /// Will return `OPENVPN_PLUGIN_FUNC_DEFERRED` to OpenVPN.
-    /// WARNING: Can only be returned from the `OpenVpnPluginEvent::AuthUserPassVerify`
+    /// WARNING: Can only be returned from the `EventType::AuthUserPassVerify`
     /// (`OPENVPN_PLUGIN_AUTH_USER_PASS_VERIFY`) event. No other events may return this variant.
     /// Returning this tells OpenVPN to continue its normal work and that the decision on if the
     /// authentication is accepted or not will be delivered later, via writing to the path under
@@ -104,39 +78,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn from_int_first() {
-        assert_eq!(OpenVpnPluginEvent::from_int(0), Ok(OpenVpnPluginEvent::Up));
-    }
-
-    #[test]
-    fn from_int_last() {
-        assert_eq!(OpenVpnPluginEvent::from_int(13), Ok(OpenVpnPluginEvent::N));
-    }
-
-    #[test]
-    fn from_int_all_valid() {
-        for i in 0..13 {
-            if OpenVpnPluginEvent::from_int(i).is_err() {
-                panic!("{} not covered", i);
-            }
-        }
-    }
-
-    #[test]
-    fn from_int_negative() {
-        let result = OpenVpnPluginEvent::from_int(-5);
-        assert_eq!(result, Err(InvalidEnumVariant(-5)));
-    }
-
-    #[test]
-    fn from_int_invalid() {
-        let result = OpenVpnPluginEvent::from_int(14);
-        assert_eq!(result, Err(InvalidEnumVariant(14)));
-    }
-
-    #[test]
     fn event_enum_to_str() {
-        let result = format!("{:?}", OpenVpnPluginEvent::Up);
+        let result = format!("{:?}", EventType::Up);
         assert_eq!("Up", result);
     }
 
@@ -148,19 +91,19 @@ mod tests {
 
     #[test]
     fn events_to_bitmask_one_event() {
-        let result = events_to_bitmask(&[OpenVpnPluginEvent::Up]);
+        let result = events_to_bitmask(&[EventType::Up]);
         assert_eq!(0b1, result);
     }
 
     #[test]
     fn events_to_bitmask_another_event() {
-        let result = events_to_bitmask(&[OpenVpnPluginEvent::RouteUp]);
+        let result = events_to_bitmask(&[EventType::RouteUp]);
         assert_eq!(0b100, result);
     }
 
     #[test]
     fn events_to_bitmask_many_events() {
-        let result = events_to_bitmask(&[OpenVpnPluginEvent::RouteUp, OpenVpnPluginEvent::N]);
-        assert_eq!((1 << 13) | (1 << 2), result);
+        let result = events_to_bitmask(&[EventType::RouteUp, EventType::RoutePredown]);
+        assert_eq!((1 << 12) | (1 << 2), result);
     }
 }
