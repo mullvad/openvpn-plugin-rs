@@ -11,11 +11,14 @@
 
 use std::os::raw::c_int;
 
-use enum_repr::EnumRepr;
+use derive_try_from_primitive::TryFromPrimitive;
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, EnumRepr)]
+
+/// All the events that an OpenVPN plugin can register for and get notified about.
+/// This is a Rust representation of the constants named ´OPENVPN_PLUGIN_*` in `openvpn-plugin.h`.
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, TryFromPrimitive)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[EnumReprType = "c_int"]
+#[repr(i32)]
 pub enum EventType {
     Up = 0,
     Down = 1,
