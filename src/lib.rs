@@ -32,13 +32,10 @@
 //! [`openvpn_plugin!`] macro.
 //!
 //! ```rust,no_run
-//! #[macro_use]
-//! extern crate openvpn_plugin;
-//!
 //! use std::collections::HashMap;
 //! use std::ffi::CString;
 //! use std::io::Error;
-//! use openvpn_plugin::{EventResult, EventType};
+//! use openvpn_plugin::{openvpn_plugin, EventResult, EventType};
 //!
 //! pub struct Handle {
 //!     // Fields needed for the plugin to keep state between callbacks
@@ -72,7 +69,7 @@
 //!     Ok(EventResult::Success)
 //! }
 //!
-//! openvpn_plugin!(::openvpn_open, ::openvpn_close, ::openvpn_event, Handle);
+//! openvpn_plugin!(crate::openvpn_open, crate::openvpn_close, crate::openvpn_event, Handle);
 //! # fn main() {}
 //! ```
 //!
@@ -101,11 +98,6 @@
 #[cfg(feature = "serde")]
 #[cfg_attr(feature = "serde", macro_use)]
 extern crate serde;
-
-#[cfg(feature = "log")]
-extern crate log;
-
-extern crate derive_try_from_primitive;
 
 use std::{
     collections::HashMap,
@@ -425,7 +417,7 @@ where
 #[derive(Debug)]
 struct Error {
     msg: &'static str,
-    cause: Box<::std::error::Error>,
+    cause: Box<dyn (::std::error::Error)>,
 }
 
 impl Error {
@@ -435,13 +427,13 @@ impl Error {
     {
         Error {
             msg,
-            cause: Box::new(cause) as Box<::std::error::Error>,
+            cause: Box::new(cause) as Box<dyn (::std::error::Error)>,
         }
     }
 }
 
 impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> ::std::result::Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> ::std::result::Result<(), fmt::Error> {
         use std::error::Error;
         self.description().fmt(f)
     }
@@ -452,7 +444,7 @@ impl ::std::error::Error for Error {
         self.msg
     }
 
-    fn cause(&self) -> Option<&::std::error::Error> {
+    fn cause(&self) -> Option<&dyn (::std::error::Error)> {
         Some(self.cause.as_ref())
     }
 }
@@ -462,7 +454,7 @@ impl ::std::error::Error for Error {
 struct InvalidEventType(c_int);
 
 impl fmt::Display for InvalidEventType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
         write!(f, "{} is not a valid OPENVPN_PLUGIN_* constant", self.0)
     }
 }

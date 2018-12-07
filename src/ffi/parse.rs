@@ -24,7 +24,7 @@ pub enum ParseError {
 }
 
 impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
         match *self {
             ParseError::NullPtr => f.write_str(self.description()),
             ParseError::NoEqual(ref s) => write!(f, "No equal sign in \"{}\"", s.to_string_lossy()),
