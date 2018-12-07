@@ -9,8 +9,6 @@
 //! This debug/example OpenVPN plugin listens for almost all events and prints the arguments
 //! for each event callback and returns success in every case.
 
-extern crate openvpn_plugin;
-
 use openvpn_plugin::{EventResult, EventType};
 use std::collections::HashMap;
 use std::ffi::CString;

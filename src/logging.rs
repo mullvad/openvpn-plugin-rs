@@ -15,7 +15,7 @@ pub fn log_error(error: &impl Error) {
     }
 }
 
-pub fn log_panic(source: &str, panic_payload: &Box<Any + Send + 'static>) {
+pub fn log_panic(source: &str, panic_payload: &Box<dyn Any + Send + 'static>) {
     let panic_msg = panic_payload
         .downcast_ref::<&str>()
         .unwrap_or(&"No panic message");
