@@ -417,17 +417,17 @@ where
 #[derive(Debug)]
 struct Error {
     msg: &'static str,
-    cause: Box<dyn (::std::error::Error)>,
+    source: Box<dyn (::std::error::Error)>,
 }
 
 impl Error {
-    pub fn new<E>(msg: &'static str, cause: E) -> Error
+    pub fn new<E>(msg: &'static str, source: E) -> Error
     where
         E: ::std::error::Error + 'static,
     {
         Error {
             msg,
-            cause: Box::new(cause) as Box<dyn (::std::error::Error)>,
+            source: Box::new(source) as Box<dyn (::std::error::Error)>,
         }
     }
 }
@@ -444,8 +444,8 @@ impl ::std::error::Error for Error {
         self.msg
     }
 
-    fn cause(&self) -> Option<&dyn (::std::error::Error)> {
-        Some(self.cause.as_ref())
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(self.source.as_ref())
     }
 }
 
