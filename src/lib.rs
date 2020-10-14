@@ -433,17 +433,12 @@ impl Error {
 }
 
 impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> ::std::result::Result<(), fmt::Error> {
-        use std::error::Error;
-        self.description().fmt(f)
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.msg.fmt(f)
     }
 }
 
-impl ::std::error::Error for Error {
-    fn description(&self) -> &str {
-        self.msg
-    }
-
+impl std::error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         Some(self.source.as_ref())
     }
@@ -454,13 +449,9 @@ impl ::std::error::Error for Error {
 struct InvalidEventType(c_int);
 
 impl fmt::Display for InvalidEventType {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} is not a valid OPENVPN_PLUGIN_* constant", self.0)
     }
 }
 
-impl ::std::error::Error for InvalidEventType {
-    fn description(&self) -> &str {
-        "Integer does not match any OPENVPN_PLUGIN_* constant"
-    }
-}
+impl std::error::Error for InvalidEventType {}
