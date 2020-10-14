@@ -15,6 +15,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+### Added
+- Add `EventType::AuthFailed` behind a feature (`auth-failed-event`). Allows the plugin to process
+  the [Mullvad VPN specific] event in the fork.
+
+[Mullvad VPN specific]: https://github.com/mullvad/openvpn
+
 ### Changed
 - Upgrade to Rust 2018. New required minimum Rust version is 1.40.0 (#[non_exhaustive]).
 - Rename `OpenVpnPluginEvent` to `EventType`.
@@ -22,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Make `types` module private and re-export `EventType` plus `EventResult` at crate root.
 - Modernize the error types. Remove `Error::description` implementation (in favor of just using
   the `Display` implementation) and change `Error::cause` into `Error::source`.
+- Make `EventType` a `#[non_exhaustive]` enum to allow conditionally adding variants with features.
 
 ### Removed
 - The `EventType::N` variant. It is not a real event.
