@@ -421,13 +421,10 @@ struct Error {
 }
 
 impl Error {
-    pub fn new<E>(msg: &'static str, source: E) -> Error
-    where
-        E: ::std::error::Error + 'static,
-    {
+    pub(crate) fn new(msg: &'static str, source: impl std::error::Error + 'static) -> Error {
         Error {
             msg,
-            source: Box::new(source) as Box<dyn (::std::error::Error)>,
+            source: Box::new(source) as Box<dyn std::error::Error>,
         }
     }
 }
