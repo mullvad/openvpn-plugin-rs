@@ -108,4 +108,15 @@ mod tests {
         let result = events_to_bitmask(&[EventType::RouteUp, EventType::RoutePredown]);
         assert_eq!((1 << 12) | (1 << 2), result);
     }
+
+    #[test]
+    fn events_max_value() {
+        let auth_failed = EventType::try_from(13);
+        #[cfg(feature = "auth-failed-event")]
+        assert_eq!(auth_failed.unwrap(), EventType::AuthFailed);
+        #[cfg(not(feature = "auth-failed-event"))]
+        assert!(auth_failed.is_none());
+
+        assert!(EventType::try_from(14).is_none());
+    }
 }
