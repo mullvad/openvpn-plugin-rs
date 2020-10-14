@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Rename `OpenVpnPluginEvent` to `EventType`.
 - Rename `EventType::from_int` to `from_repr` and make it return `None` on failure instead of error.
 - Make `types` module private and re-export `EventType` plus `EventResult` at crate root.
+- Modernize the error types. Remove `Error::description` implementation (in favor of just using
+  the `Display` implementation) and change `Error::cause` into `Error::source`.
 
 ### Removed
 - The `EventType::N` variant. It is not a real event.
