@@ -101,6 +101,7 @@ extern crate serde;
 
 use std::{
     collections::HashMap,
+    convert::TryFrom,
     ffi::CString,
     fmt,
     os::raw::{c_int, c_void},
@@ -382,7 +383,7 @@ where
 {
     let event_type = (*args).event_type;
     let event = try_or_return_error!(
-        EventType::try_from(event_type).ok_or_else(|| InvalidEventType(event_type)),
+        EventType::try_from(event_type).map_err(|_| InvalidEventType(event_type)),
         "Invalid event integer"
     );
     let parsed_args = try_or_return_error!(

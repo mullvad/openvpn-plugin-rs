@@ -79,6 +79,7 @@ pub enum EventResult {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::convert::TryFrom;
 
     #[test]
     fn event_enum_to_str() {
@@ -116,8 +117,8 @@ mod tests {
         #[cfg(feature = "auth-failed-event")]
         assert_eq!(auth_failed.unwrap(), EventType::AuthFailed);
         #[cfg(not(feature = "auth-failed-event"))]
-        assert!(auth_failed.is_none());
+        assert_eq!(auth_failed, Err(13));
 
-        assert!(EventType::try_from(14).is_none());
+        assert_eq!(EventType::try_from(14), Err(14));
     }
 }

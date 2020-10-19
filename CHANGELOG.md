@@ -22,13 +22,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [Mullvad VPN specific]: https://github.com/mullvad/openvpn
 
 ### Changed
-- Upgrade to Rust 2018. New required minimum Rust version is 1.40.0 (#[non_exhaustive]).
+- Upgrade to Rust 2018. New required minimum Rust version (MSRV) is 1.42.0 due to
+  #[non_exhaustive] and `proc_macro::TokenStream`.
 - Rename `OpenVpnPluginEvent` to `EventType`.
 - Rename `EventType::from_int` to `from_repr` and make it return `None` on failure instead of error.
 - Make `types` module private and re-export `EventType` plus `EventResult` at crate root.
 - Modernize the error types. Remove `Error::description` implementation (in favor of just using
   the `Display` implementation) and change `Error::cause` into `Error::source`.
 - Make `EventType` a `#[non_exhaustive]` enum to allow conditionally adding variants with features.
+- `EventType` now implements `std::convert::TryFrom` instead of having custom `try_from` method.
+  Returns a `Result<Self, i32>` instead of `Option<Self>`.
 
 ### Removed
 - The `EventType::N` variant. It is not a real event.
