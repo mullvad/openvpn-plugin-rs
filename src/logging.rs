@@ -32,10 +32,10 @@ pub fn log_panic(source: &str, panic_payload: &Box<dyn Any + Send + 'static>) {
 
 fn format_error<E: ::std::error::Error>(error: &E) -> String {
     let mut error_string = format!("Error: {}", error);
-    let mut error_iter = error.cause();
+    let mut error_iter = error.source();
     while let Some(e) = error_iter {
         error_string.push_str(&format!("\nCaused by: {}", e));
-        error_iter = e.cause();
+        error_iter = e.source();
     }
     error_string
 }

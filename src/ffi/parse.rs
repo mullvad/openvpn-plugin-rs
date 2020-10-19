@@ -26,20 +26,13 @@ pub enum ParseError {
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
         match *self {
-            ParseError::NullPtr => f.write_str(self.description()),
+            ParseError::NullPtr => "Input is null pointer".fmt(f),
             ParseError::NoEqual(ref s) => write!(f, "No equal sign in \"{}\"", s.to_string_lossy()),
         }
     }
 }
 
-impl Error for ParseError {
-    fn description(&self) -> &str {
-        match *self {
-            ParseError::NullPtr => "Input is null pointer",
-            ParseError::NoEqual(_) => "No equal sign in string",
-        }
-    }
-}
+impl Error for ParseError {}
 
 
 /// Parses a null-terminated C string array into a Vec<CString> for safe usage.

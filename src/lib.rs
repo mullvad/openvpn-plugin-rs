@@ -417,35 +417,27 @@ where
 #[derive(Debug)]
 struct Error {
     msg: &'static str,
-    cause: Box<dyn (::std::error::Error)>,
+    source: Box<dyn (::std::error::Error)>,
 }
 
 impl Error {
-    pub fn new<E>(msg: &'static str, cause: E) -> Error
-    where
-        E: ::std::error::Error + 'static,
-    {
+    pub(crate) fn new(msg: &'static str, source: impl std::error::Error + 'static) -> Error {
         Error {
             msg,
-            cause: Box::new(cause) as Box<dyn (::std::error::Error)>,
+            source: Box::new(source) as Box<dyn std::error::Error>,
         }
     }
 }
 
 impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> ::std::result::Result<(), fmt::Error> {
-        use std::error::Error;
-        self.description().fmt(f)
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.msg.fmt(f)
     }
 }
 
-impl ::std::error::Error for Error {
-    fn description(&self) -> &str {
-        self.msg
-    }
-
-    fn cause(&self) -> Option<&dyn (::std::error::Error)> {
-        Some(self.cause.as_ref())
+impl std::error::Error for Error {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(self.source.as_ref())
     }
 }
 
@@ -454,13 +446,9 @@ impl ::std::error::Error for Error {
 struct InvalidEventType(c_int);
 
 impl fmt::Display for InvalidEventType {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} is not a valid OPENVPN_PLUGIN_* constant", self.0)
     }
 }
 
-impl ::std::error::Error for InvalidEventType {
-    fn description(&self) -> &str {
-        "Integer does not match any OPENVPN_PLUGIN_* constant"
-    }
-}
+impl std::error::Error for InvalidEventType {}
