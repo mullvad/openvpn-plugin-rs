@@ -29,6 +29,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Modernize the error types. Remove `Error::description` implementation (in favor of just using
   the `Display` implementation) and change `Error::cause` into `Error::source`.
 - Make `EventType` a `#[non_exhaustive]` enum to allow conditionally adding variants with features.
+- `EventType` now implements `std::convert::TryFrom` instead of having custom `try_from` method.
+  Returns a `Result<Self, i32>` instead of `Option<Self>`.
 
 ### Removed
 - The `EventType::N` variant. It is not a real event.
