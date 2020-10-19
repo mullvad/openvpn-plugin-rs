@@ -30,6 +30,8 @@ pub static INTERESTING_EVENTS: &[EventType] = &[
     EventType::TlsFinal,
     EventType::EnablePf,
     EventType::RoutePredown,
+    #[cfg(feature = "auth-failed-event")]
+    EventType::AuthFailed,
 ];
 
 openvpn_plugin::openvpn_plugin!(

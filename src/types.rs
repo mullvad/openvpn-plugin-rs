@@ -18,6 +18,7 @@ use derive_try_from_primitive::TryFromPrimitive;
 /// This is a Rust representation of the constants named ´OPENVPN_PLUGIN_*` in `openvpn-plugin.h`.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, TryFromPrimitive)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[non_exhaustive]
 #[repr(i32)]
 pub enum EventType {
     Up = 0,
@@ -33,6 +34,8 @@ pub enum EventType {
     TlsFinal = 10,
     EnablePf = 11,
     RoutePredown = 12,
+    #[cfg(feature = "auth-failed-event")]
+    AuthFailed = 13,
 }
 
 /// Translates a collection of `EventType` instances into a bitmask in the format OpenVPN
@@ -105,5 +108,16 @@ mod tests {
     fn events_to_bitmask_many_events() {
         let result = events_to_bitmask(&[EventType::RouteUp, EventType::RoutePredown]);
         assert_eq!((1 << 12) | (1 << 2), result);
+    }
+
+    #[test]
+    fn events_max_value() {
+        let auth_failed = EventType::try_from(13);
+        #[cfg(feature = "auth-failed-event")]
+        assert_eq!(auth_failed.unwrap(), EventType::AuthFailed);
+        #[cfg(not(feature = "auth-failed-event"))]
+        assert!(auth_failed.is_none());
+
+        assert!(EventType::try_from(14).is_none());
     }
 }

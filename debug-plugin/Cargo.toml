@@ -8,5 +8,8 @@ edition = "2018"
 [lib]
 crate-type = ["cdylib"]
 
+[features]
+auth-failed-event = ["openvpn-plugin/auth-failed-event"]
+
 [dependencies]
 openvpn-plugin = { path = "../", features = ["log", "serde"] }
