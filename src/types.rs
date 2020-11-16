@@ -34,8 +34,10 @@ pub enum EventType {
     TlsFinal = 10,
     EnablePf = 11,
     RoutePredown = 12,
+    ClientConnectDefer = 13,
+    ClientConnectDeferV2 = 14,
     #[cfg(feature = "auth-failed-event")]
-    AuthFailed = 13,
+    AuthFailed = 15,
 }
 
 /// Translates a collection of `EventType` instances into a bitmask in the format OpenVPN
