@@ -115,12 +115,12 @@ mod tests {
 
     #[test]
     fn events_max_value() {
-        let auth_failed = EventType::try_from(13);
+        let auth_failed = EventType::try_from(15);
         #[cfg(feature = "auth-failed-event")]
         assert_eq!(auth_failed.unwrap(), EventType::AuthFailed);
         #[cfg(not(feature = "auth-failed-event"))]
-        assert_eq!(auth_failed, Err(13));
+        assert_eq!(auth_failed, Err(15));
 
-        assert_eq!(EventType::try_from(14), Err(14));
+        assert_eq!(EventType::try_from(16), Err(16));
     }
 }
