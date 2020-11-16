@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Add `EventType::AuthFailed` behind a feature (`auth-failed-event`). Allows the plugin to process
   the [Mullvad VPN specific] event in the fork.
+- Add event types `ClientConnectDefer` and `ClientConnectDeferV2`, new in OpenVPN 2.5.
 
 [Mullvad VPN specific]: https://github.com/mullvad/openvpn
 
