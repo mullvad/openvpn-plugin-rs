@@ -30,6 +30,8 @@ pub static INTERESTING_EVENTS: &[EventType] = &[
     EventType::TlsFinal,
     EventType::EnablePf,
     EventType::RoutePredown,
+    EventType::ClientConnectDefer,
+    EventType::ClientConnectDeferV2,
     #[cfg(feature = "auth-failed-event")]
     EventType::AuthFailed,
 ];

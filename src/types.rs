@@ -34,8 +34,10 @@ pub enum EventType {
     TlsFinal = 10,
     EnablePf = 11,
     RoutePredown = 12,
+    ClientConnectDefer = 13,
+    ClientConnectDeferV2 = 14,
     #[cfg(feature = "auth-failed-event")]
-    AuthFailed = 13,
+    AuthFailed = 15,
 }
 
 /// Translates a collection of `EventType` instances into a bitmask in the format OpenVPN
@@ -113,12 +115,12 @@ mod tests {
 
     #[test]
     fn events_max_value() {
-        let auth_failed = EventType::try_from(13);
+        let auth_failed = EventType::try_from(15);
         #[cfg(feature = "auth-failed-event")]
         assert_eq!(auth_failed.unwrap(), EventType::AuthFailed);
         #[cfg(not(feature = "auth-failed-event"))]
-        assert_eq!(auth_failed, Err(13));
+        assert_eq!(auth_failed, Err(15));
 
-        assert_eq!(EventType::try_from(14), Err(14));
+        assert_eq!(EventType::try_from(16), Err(16));
     }
 }
