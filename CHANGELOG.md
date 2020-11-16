@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+
+
+## [0.4.0] - 2020-11-16
 ### Added
 - Add `EventType::AuthFailed` behind a feature (`auth-failed-event`). Allows the plugin to process
   the [Mullvad VPN specific] event in the fork.
