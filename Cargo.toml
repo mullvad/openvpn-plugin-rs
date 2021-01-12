@@ -1,7 +1,7 @@
 [package]
 name = "openvpn-plugin"
-version = "0.4.0"
-authors = ["Mullvad VPN <admin@mullvad.net>", "Linus Färnstrand <linus@mullvad.net>"]
+version = "0.4.1"
+authors = ["Mullvad VPN", "Linus Färnstrand <linus@mullvad.net>"]
 description = "A crate allowing easy creation of OpenVPN plugins in Rust"
 keywords = ["openvpn", "vpn", "plugin", "ffi", "cdylib"]
 categories = ["api-bindings", "external-ffi-bindings", "network-programming"]

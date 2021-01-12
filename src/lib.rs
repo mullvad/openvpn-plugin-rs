@@ -75,9 +75,9 @@
 //!
 //! ## Panic handling
 //!
-//! C cannot handle Rust panic unwinding and thus it is not good practice to let Rust panic when
-//! called from C. Because of this all calls from this crate to the callbacks given to
-//! [`openvpn_plugin!`] \(`$open_fn`, `$close_fn` and `$event_fn`) are wrapped by
+//! C cannot handle Rust panic unwinding into it, so it is not good practice to let Rust panic when
+//! called from C. Because of this, all calls from this crate to the callbacks given to
+//! [`openvpn_plugin!`] \(`$open_fn`, `$close_fn` and `$event_fn`) are wrapped in
 //! [`catch_unwind`].
 //!
 //! If [`catch_unwind`] captures a panic it will log it and then return
@@ -90,7 +90,8 @@
 //! Any errors returned from the user defined callbacks or panics that happens anywhere in Rust is
 //! logged by this crate before control is returned to OpenVPN. By default logging happens to
 //! stderr. To activate logging with the `error!` macro in the `log` crate, build this crate with
-// the `log` feature.
+//! the `log` feature.
+//!
 //! [`openvpn_plugin!`]: macro.openvpn_plugin.html
 //! [`OPENVPN_PLUGIN_FUNC_ERROR`]: ffi/constant.OPENVPN_PLUGIN_FUNC_ERROR.html
 //! [`catch_unwind`]: https://doc.rust-lang.org/std/panic/fn.catch_unwind.html

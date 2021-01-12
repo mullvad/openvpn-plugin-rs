@@ -15,7 +15,7 @@ use derive_try_from_primitive::TryFromPrimitive;
 
 
 /// All the events that an OpenVPN plugin can register for and get notified about.
-/// This is a Rust representation of the constants named ´OPENVPN_PLUGIN_*` in `openvpn-plugin.h`.
+/// This is a Rust representation of the constants named `OPENVPN_PLUGIN_*` in `openvpn-plugin.h`.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, TryFromPrimitive)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[non_exhaustive]
