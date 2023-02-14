@@ -304,7 +304,7 @@ macro_rules! try_or_return_error {
                 logging::log_error(&Error::new($error_msg, e));
                 return ffi::OPENVPN_PLUGIN_FUNC_ERROR;
             }
-        };
+        }
     };
 }
 
