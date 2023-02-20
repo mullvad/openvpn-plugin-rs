@@ -14,8 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * **Security**: in case of vulnerabilities.
 
 
-## [Unreleased]
-
+## [0.5.0] - 2023-02-20
 ### Added
 - Add event type `ClientCrresponse`, new in OpenVPN 2.6.
 
