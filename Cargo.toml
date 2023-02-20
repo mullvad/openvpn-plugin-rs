@@ -1,6 +1,6 @@
 [package]
 name = "openvpn-plugin"
-version = "0.4.1"
+version = "0.4.2"
 authors = ["Mullvad VPN", "Linus Färnstrand <linus@mullvad.net>"]
 description = "A crate allowing easy creation of OpenVPN plugins in Rust"
 keywords = ["openvpn", "vpn", "plugin", "ffi", "cdylib"]
@@ -13,6 +13,7 @@ edition = "2018"
 # Adds `EventType::AuthFailed`. This plugin event is specific to the Mullvad VPN fork of OpenVPN,
 # which is useful to anyone who want to detect client authentication failures in an OpenVPN plugin.
 # This event will never happen on standard upstream OpenVPN.
+# NOTE: This feature is unstable. The event type number may change at any time.
 # https://github.com/mullvad/openvpn
 auth-failed-event = []
 

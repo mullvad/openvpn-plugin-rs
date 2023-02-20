@@ -16,11 +16,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.4.2] - 2023-02-20
 ### Added
 - Add event type `ClientCrresponse`, new in OpenVPN 2.6.
 
-### Removed
-- Remove deprecated `EnablePf` event type.
+### Changed
+- Increment the value of `AuthFailed` by 1. This is not breaking due to the unstable nature of the
+  feature.
 
 ## [0.4.1] - 2021-01-12
 ### Fixed

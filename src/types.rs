@@ -1,4 +1,4 @@
-// Copyright 2017 Amagicom AB.
+// Copyright 2023 Mullvad VPN AB.
 //
 // Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 // http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
@@ -32,7 +32,7 @@ pub enum EventType {
     LearnAddress = 8,
     ClientConnectV2 = 9,
     TlsFinal = 10,
-    //EnablePf = 11, // feature has been removed as of OpenVPN 2.6
+    EnablePf = 11, // NOTE: feature has been removed as of OpenVPN 2.6
     RoutePredown = 12,
     ClientConnectDefer = 13,
     ClientConnectDeferV2 = 14,
