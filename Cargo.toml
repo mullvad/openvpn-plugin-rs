@@ -8,6 +8,7 @@ categories = ["api-bindings", "external-ffi-bindings", "network-programming"]
 repository = "https://github.com/mullvad/openvpn-plugin-rs"
 license = "MIT OR Apache-2.0"
 edition = "2018"
+readme = "./README.md"
 
 [features]
 # Adds `EventType::AuthFailed`. This plugin event is specific to the Mullvad VPN fork of OpenVPN,
