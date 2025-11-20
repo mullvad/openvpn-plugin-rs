@@ -419,7 +419,7 @@ where
 #[derive(Debug)]
 struct Error {
     msg: &'static str,
-    source: Box<dyn (::std::error::Error)>,
+    source: Box<dyn ::std::error::Error>,
 }
 
 impl Error {
